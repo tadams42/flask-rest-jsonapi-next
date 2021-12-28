@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask
-from flask_rest_jsonapi import Api, ResourceDetail, ResourceList, ResourceRelationship
-from flask_rest_jsonapi.exceptions import ObjectNotFound
+from flask_rest_jsonapi_next import Api, ResourceDetail, ResourceList, ResourceRelationship
+from flask_rest_jsonapi_next.exceptions import ObjectNotFound
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 from marshmallow_jsonapi.flask import Schema, Relationship

@@ -13,14 +13,14 @@ from flask.views import MethodView, MethodViewType
 from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from marshmallow import ValidationError
 
-from flask_rest_jsonapi.querystring import QueryStringManager as QSManager
-from flask_rest_jsonapi.pagination import add_pagination_links
-from flask_rest_jsonapi.exceptions import InvalidType, BadRequest, RelationNotFound
-from flask_rest_jsonapi.decorators import check_headers, check_method_requirements, jsonapi_exception_formatter
-from flask_rest_jsonapi.schema import compute_schema, get_relationships, get_model_field
-from flask_rest_jsonapi.data_layers.base import BaseDataLayer
-from flask_rest_jsonapi.data_layers.alchemy import SqlalchemyDataLayer
-from flask_rest_jsonapi.utils import JSONEncoder
+from flask_rest_jsonapi_next.querystring import QueryStringManager as QSManager
+from flask_rest_jsonapi_next.pagination import add_pagination_links
+from flask_rest_jsonapi_next.exceptions import InvalidType, BadRequest, RelationNotFound
+from flask_rest_jsonapi_next.decorators import check_headers, check_method_requirements, jsonapi_exception_formatter
+from flask_rest_jsonapi_next.schema import compute_schema, get_relationships, get_model_field
+from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
+from flask_rest_jsonapi_next.data_layers.alchemy import SqlalchemyDataLayer
+from flask_rest_jsonapi_next.utils import JSONEncoder
 from marshmallow_jsonapi.fields import BaseRelationship
 
 

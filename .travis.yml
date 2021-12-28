@@ -1,12 +1,17 @@
 dist: xenial
 language: python
 python:
-  - '3.5'
   - '3.6'
+  - '3.7'
   - '3.8'
+  - '3.9'
   - 'pypy3'
 script:
   - pip install .[dev]
-  - coverage run --source flask_rest_jsonapi -m pytest -v
+  - coverage run --source flask_rest_jsonapi_next -m pytest -v
+branches:
+  only:
+    - development
+    - "/^feature.*$/"
 after_success:
   - coveralls
