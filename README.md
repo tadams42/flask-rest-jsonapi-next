@@ -1,13 +1,11 @@
-[![PyPi Status](https://badge.fury.io/py/flask-rest-jsonapi-next.svg)](https://badge.fury.io/py/flask-rest-jsonapi-next)
-[![Build Status](https://travis-ci.org/tadams42/flask-rest-jsonapi-next.svg)](https://app.travis-ci.com/tadams42/flask-rest-jsonapi-next)
-[![Coverage Status](https://coveralls.io/repos/github/tadams42/flask-rest-jsonapi-next/badge.svg)](https://coveralls.io/github/tadams42/flask-rest-jsonapi-next)
-[![Documentation Status](https://readthedocs.org/projects/flask-rest-jsonapi-next/badge/?version=latest)](http://flask-rest-jsonapi-next.readthedocs.io/en/latest/?badge=latest)
-
 # flask-rest-jsonapi-next
 
+[![PyPi Status](https://badge.fury.io/py/flask-rest-jsonapi-next.svg)](https://badge.fury.io/py/flask-rest-jsonapi-next)
+[![Build Status](https://travis-ci.org/tadams42/flask-rest-jsonapi-next.svg)](https://app.travis-ci.com/tadams42/flask-rest-jsonapi-next)
+[![Coverage Status](https://coveralls.io/repos/github/tadams42/flask-rest-jsonapi-next/badge.svg?branch=development)](https://coveralls.io/github/tadams42/flask-rest-jsonapi-next?branch=development)
+[![Documentation Status](https://readthedocs.org/projects/flask-rest-jsonapi-next/badge/?version=latest)](http://flask-rest-jsonapi-next.readthedocs.io/en/latest/?badge=latest)
 
 !!! note This is a fork of [miLibris/flask-rest-jsonapi](https://github.com/miLibris/flask-rest-jsonapi) project
-
     Initial release of `flask-rest-jsonapi-next` is built from
     `miLibris/flask-rest-jsonapi`, `v0.31.2 (a4ff3f4d5be78071f015efe003e976d31d4eba10)`
 
