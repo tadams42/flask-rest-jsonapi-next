@@ -3,18 +3,18 @@
 Installation
 ============
 
-.. currentmodule:: flask_rest_jsonapi
+.. currentmodule:: flask_rest_jsonapi_next
 
-Install Flask-REST-JSONAPI with ``pip`` ::
+Install flask-rest-jsonapi-next with ``pip`` ::
 
-    pip install flask-rest-jsonapi
+    pip install flask-rest-jsonapi-next
 
 
 The development version can be downloaded from `its page at GitHub
-<https://github.com/miLibris/flask-rest-jsonapi>`_. ::
+<https://github.com/tadams42/flask-rest-jsonapi-next>`_. ::
 
-    git clone https://github.com/miLibris/flask-rest-jsonapi.git
-    cd flask-rest-jsonapi
+    git clone https://github.com/tadams42/flask-rest-jsonapi-next.git
+    cd flask-rest-jsonapi-next
     mkvirtualenv venv
     python setup.py install
 

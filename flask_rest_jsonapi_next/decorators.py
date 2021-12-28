@@ -7,9 +7,9 @@ from functools import wraps
 
 from flask import request, make_response, jsonify, current_app
 
-from flask_rest_jsonapi.errors import jsonapi_errors
-from flask_rest_jsonapi.exceptions import JsonApiException
-from flask_rest_jsonapi.utils import JSONEncoder
+from flask_rest_jsonapi_next.errors import jsonapi_errors
+from flask_rest_jsonapi_next.exceptions import JsonApiException
+from flask_rest_jsonapi_next.utils import JSONEncoder
 
 
 def check_headers(func):

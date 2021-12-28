@@ -9,8 +9,8 @@ from functools import wraps
 
 from flask import request, abort
 
-from flask_rest_jsonapi.resource import ResourceList, ResourceRelationship
-from flask_rest_jsonapi.decorators import jsonapi_exception_formatter
+from flask_rest_jsonapi_next.resource import ResourceList, ResourceRelationship
+from flask_rest_jsonapi_next.decorators import jsonapi_exception_formatter
 
 
 class Api(object):
@@ -61,7 +61,7 @@ class Api(object):
     def route(self, resource, view, *urls, **kwargs):
         """Create an api view.
 
-        :param Resource resource: a resource class inherited from flask_rest_jsonapi.resource.Resource
+        :param Resource resource: a resource class inherited from flask_rest_jsonapi_next.resource.Resource
         :param str view: the view name
         :param list urls: the urls of the view
         :param dict kwargs: additional options of the route
