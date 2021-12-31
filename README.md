@@ -1,9 +1,11 @@
 # flask-rest-jsonapi-next
 
 [![PyPi Status](https://badge.fury.io/py/flask-rest-jsonapi-next.svg)](https://badge.fury.io/py/flask-rest-jsonapi-next)
+[![license](https://img.shields.io/pypi/l/flask-rest-jsonapi-next.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.org/tadams42/flask-rest-jsonapi-next.svg)](https://app.travis-ci.com/tadams42/flask-rest-jsonapi-next)
 [![Coverage Status](https://coveralls.io/repos/github/tadams42/flask-rest-jsonapi-next/badge.svg?branch=development)](https://coveralls.io/github/tadams42/flask-rest-jsonapi-next?branch=development)
 [![Documentation Status](https://readthedocs.org/projects/flask-rest-jsonapi-next/badge/?version=latest)](http://flask-rest-jsonapi-next.readthedocs.io/en/latest/?badge=latest)
+[![python_versions](https://img.shields.io/pypi/pyversions/flask-rest-jsonapi-next.svg)](https://pypi.org/project/flask-rest-jsonapi-next/)
 
 !!! note This is a fork of [miLibris/flask-rest-jsonapi](https://github.com/miLibris/flask-rest-jsonapi) project
     Initial release of `flask-rest-jsonapi-next` is built from
