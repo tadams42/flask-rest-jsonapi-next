@@ -19,6 +19,7 @@ from ..exceptions import RelationNotFound, RelatedObjectNotFound, JsonApiExcepti
 from .filtering.alchemy import create_filters
 from ..schema import get_model_field, get_related_schema, get_relationships, get_nested_fields, get_schema_field
 
+import marshmallow
 
 class SqlalchemyDataLayer(BaseDataLayer):
     """Sqlalchemy data layer"""
@@ -55,6 +56,8 @@ class SqlalchemyDataLayer(BaseDataLayer):
                             for (key, value) in data.items() if key not in join_fields})
         self.apply_relationships(data, obj)
         self.apply_nested_fields(data, obj)
+
+        self.before_commit(obj)
 
         self.session.add(obj)
         try:
@@ -162,6 +165,8 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         self.apply_relationships(data, obj)
         self.apply_nested_fields(data, obj)
+
+        self.before_commit(obj)
 
         try:
             self.session.commit()
@@ -606,6 +611,15 @@ class SqlalchemyDataLayer(BaseDataLayer):
         :param dict view_kwargs: kwargs from the resource view
         """
         pass
+
+    def before_commit(self, obj):
+        try:
+            errors = obj.validate()
+            if errors:
+                raise marshmallow.ValidationError(errors)
+
+        except AttributeError:
+            pass
 
     def after_create_object(self, obj, data, view_kwargs):
         """Provide additional data after object creation
