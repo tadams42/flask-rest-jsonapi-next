@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """Collection of useful http error for the Api"""
 
@@ -105,3 +107,5 @@ class AccessDenied(JsonApiException):
 
     title = 'Access denied'
     status = '403'
+
+# fmt: on

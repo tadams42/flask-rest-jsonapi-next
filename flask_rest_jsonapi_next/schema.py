@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """Helpers to deal with marshmallow schemas"""
 
@@ -6,7 +8,7 @@ from marshmallow import class_registry
 from marshmallow.base import SchemaABC
 from marshmallow_jsonapi.fields import Relationship, List, Nested
 
-from flask_rest_jsonapi_next.exceptions import InvalidInclude
+from .exceptions import InvalidInclude
 
 
 def compute_schema(schema_cls, default_kwargs, qs, include):
@@ -169,3 +171,5 @@ def get_schema_field(schema, field):
             return key
 
     raise Exception("Couldn't find schema field from {}".format(field))
+
+# fmt: on

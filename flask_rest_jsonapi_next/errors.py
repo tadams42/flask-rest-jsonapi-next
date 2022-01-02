@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """Helper to  format Api errors according to jsonapi specification"""
 
@@ -11,3 +13,5 @@ def jsonapi_errors(jsonapi_errors):
     """
     return {'errors': [jsonapi_error for jsonapi_error in jsonapi_errors],
             'jsonapi': {'version': '1.0'}}
+
+# fmt: on

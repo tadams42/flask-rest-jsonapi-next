@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """Helper to create sqlalchemy filters according to filter querystring parameter"""
 
 from sqlalchemy import and_, or_, not_
 
-from flask_rest_jsonapi_next.exceptions import InvalidFilters
-from flask_rest_jsonapi_next.schema import get_relationships, get_nested_fields, get_model_field
+from ...exceptions import InvalidFilters
+from ...schema import get_relationships, get_nested_fields, get_model_field
 
 
 def create_filters(model, filter_info, resource):
@@ -167,3 +169,5 @@ class Node(object):
             raise InvalidFilters("{} has no relationship or nested attribute {}".format(self.schema.__name__, related_field_name))
 
         return self.schema._declared_fields[related_field_name].schema.__class__
+
+# fmt: on

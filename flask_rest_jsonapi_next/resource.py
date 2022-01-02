@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """This module contains the logic of resource management"""
 
@@ -13,14 +15,14 @@ from flask.views import MethodView, MethodViewType
 from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from marshmallow import ValidationError
 
-from flask_rest_jsonapi_next.querystring import QueryStringManager as QSManager
-from flask_rest_jsonapi_next.pagination import add_pagination_links
-from flask_rest_jsonapi_next.exceptions import InvalidType, BadRequest, RelationNotFound
-from flask_rest_jsonapi_next.decorators import check_headers, check_method_requirements, jsonapi_exception_formatter
-from flask_rest_jsonapi_next.schema import compute_schema, get_relationships, get_model_field
-from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
-from flask_rest_jsonapi_next.data_layers.alchemy import SqlalchemyDataLayer
-from flask_rest_jsonapi_next.utils import JSONEncoder
+from .querystring import QueryStringManager as QSManager
+from .pagination import add_pagination_links
+from .exceptions import InvalidType, BadRequest, RelationNotFound
+from .decorators import check_headers, check_method_requirements, jsonapi_exception_formatter
+from .schema import compute_schema, get_relationships, get_model_field
+from .data_layers.base import BaseDataLayer
+from .data_layers.alchemy import SqlalchemyDataLayer
+from .utils import JSONEncoder
 from marshmallow_jsonapi.fields import BaseRelationship
 
 
@@ -563,3 +565,5 @@ class ResourceRelationship(with_metaclass(ResourceMeta, Resource)):
     def after_delete(self, result, status_code):
         """Hook to make custom work after delete method"""
         return result, status_code
+
+# fmt: on

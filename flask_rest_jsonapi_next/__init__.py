@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 __version__ = "0.31.2"
 
-from flask_rest_jsonapi_next.api import Api
-from flask_rest_jsonapi_next.resource import ResourceList, ResourceDetail, ResourceRelationship
-from flask_rest_jsonapi_next.exceptions import JsonApiException
+from .api import Api
+from .resource import ResourceList, ResourceDetail, ResourceRelationship
+from .exceptions import JsonApiException
 
 __all__ = [
     'Api',
@@ -13,3 +15,5 @@ __all__ = [
     'ResourceRelationship',
     'JsonApiException'
 ]
+
+# fmt: on

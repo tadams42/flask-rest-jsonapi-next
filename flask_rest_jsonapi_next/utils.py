@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 import json
 from uuid import UUID
@@ -13,5 +15,7 @@ class JSONEncoder(json.JSONEncoder):
         elif isinstance(obj, UUID):
             return str(obj)
         elif isinstance(obj, Decimal):
-            return str(obj)            
+            return str(obj)
         return json.JSONEncoder.default(self, obj)
+
+# fmt: on

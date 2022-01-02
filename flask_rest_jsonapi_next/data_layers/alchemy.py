@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """This module is a CRUD interface between resource managers and the sqlalchemy ORM"""
 
@@ -11,11 +13,11 @@ from marshmallow import class_registry
 from marshmallow.base import SchemaABC
 
 from flask import current_app
-from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
-from flask_rest_jsonapi_next.exceptions import RelationNotFound, RelatedObjectNotFound, JsonApiException,\
+from .base import BaseDataLayer
+from ..exceptions import RelationNotFound, RelatedObjectNotFound, JsonApiException,\
     InvalidSort, ObjectNotFound, InvalidInclude, InvalidType
-from flask_rest_jsonapi_next.data_layers.filtering.alchemy import create_filters
-from flask_rest_jsonapi_next.schema import get_model_field, get_related_schema, get_relationships, get_nested_fields, get_schema_field
+from .filtering.alchemy import create_filters
+from ..schema import get_model_field, get_related_schema, get_relationships, get_nested_fields, get_schema_field
 
 
 class SqlalchemyDataLayer(BaseDataLayer):
@@ -774,3 +776,5 @@ class SqlalchemyDataLayer(BaseDataLayer):
         :param dict view_kwargs: kwargs from the resource view
         """
         pass
+
+# fmt: on

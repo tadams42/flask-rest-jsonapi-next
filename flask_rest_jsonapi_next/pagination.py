@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """Helper to create pagination links according to jsonapi specification"""
 
@@ -54,3 +56,5 @@ def add_pagination_links(data, object_count, querystring, base_url):
                 links['next'] = '?'.join((base_url, urlencode(all_qs_args)))
 
     data['links'] = links
+
+# fmt: on

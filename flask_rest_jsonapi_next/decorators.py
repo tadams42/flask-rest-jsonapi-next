@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """Decorators to check headers and method requirements for each Api calls"""
 
@@ -7,9 +9,9 @@ from functools import wraps
 
 from flask import request, make_response, jsonify, current_app
 
-from flask_rest_jsonapi_next.errors import jsonapi_errors
-from flask_rest_jsonapi_next.exceptions import JsonApiException
-from flask_rest_jsonapi_next.utils import JSONEncoder
+from .errors import jsonapi_errors
+from .exceptions import JsonApiException
+from .utils import JSONEncoder
 
 
 def check_headers(func):
@@ -100,3 +102,5 @@ def jsonapi_exception_formatter(func):
                                  exc.status,
                                  headers)
     return wrapper
+
+# fmt: on

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """The base class of a data layer. If you want to create your own data layer you must inherite from this base class"""
 
@@ -324,3 +326,5 @@ class BaseDataLayer(object):
         for key, value in methods.items():
             if key in self.REWRITABLE_METHODS:
                 setattr(self, key, types.MethodType(value, self))
+
+# fmt: on
