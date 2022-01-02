@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 from six.moves.urllib.parse import urlencode, parse_qs
 import pytest
 
+import sqlalchemy
 from sqlalchemy import create_engine, Column, Integer, DateTime, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -19,7 +22,7 @@ from flask_rest_jsonapi_next.querystring import QueryStringManager as QSManager
 from flask_rest_jsonapi_next.data_layers.alchemy import SqlalchemyDataLayer
 from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
 from flask_rest_jsonapi_next.data_layers.filtering.alchemy import Node
-from flask_rest_jsonapi_next.decorators import check_headers, check_method_requirements, jsonapi_exception_formatter
+from flask_rest_jsonapi_next.decorators import check_headers, check_method_requirements
 import flask_rest_jsonapi_next.decorators
 import flask_rest_jsonapi_next.resource
 import flask_rest_jsonapi_next.schema
@@ -603,8 +606,11 @@ def test_resource(app, person_model, person_schema, session, monkeypatch):
             .__new__(ResourceList)
         with pytest.raises(Exception):
             r.dispatch_request()
-        rl.post()
-        rd.patch()
+
+        with pytest.raises(ValidationError):
+            rl.post()
+        with pytest.raises(ValidationError):
+            rd.patch()
 
 
 def test_compute_schema(person_schema):
@@ -1262,7 +1268,7 @@ def test_sqlalchemy_data_layer_without_model(session, person_list):
 
 
 def test_sqlalchemy_data_layer_create_object_error(session, person_model, person_list):
-    with pytest.raises(JsonApiException):
+    with pytest.raises(sqlalchemy.exc.IntegrityError):
         dl = SqlalchemyDataLayer(dict(session=session, model=person_model, resource=person_list))
         dl.create_object(dict(), dict())
 
@@ -1927,3 +1933,5 @@ def test_relationship_containing_hyphens(api, app, client, person_schema, person
     response = client.get('/persons/{}/relationships/computers-owned'.format(person.person_id),
                           content_type='application/vnd.api+json')
     assert response.status_code == 200, response.json['errors']
+
+# fmt: on

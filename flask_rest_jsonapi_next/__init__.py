@@ -9,15 +9,10 @@ from .resource import ResourceList, ResourceDetail, ResourceRelationship
 from .exceptions import JsonApiException
 from .data_layers.alchemy import SqlalchemyDataLayer
 from . import json_utilities
-
-__all__ = [
-    'Api',
-    'ResourceList',
-    'ResourceDetail',
-    'ResourceRelationship',
-    'JsonApiException',
-    'SqlalchemyDataLayer',
-    'json_utilities'
-]
+from .error_responses import (
+    ErrorsAsJsonApi,
+    error_response,
+    ExceptionConverter,
+)
 
 # fmt: on

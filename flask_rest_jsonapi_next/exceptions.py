@@ -12,14 +12,15 @@ class JsonApiException(Exception):
     status = '500'
     source = None
 
-    def __init__(self, detail, source=None, title=None, status=None, code=None, id_=None, links=None, meta=None):
+    def __init__(self, detail="", source=None, title=None, status=None, code=None, id_=None, links=None, meta=None):
         """Initialize a jsonapi exception
 
         :param dict source: the source of the error
         :param str detail: the detail of the error
         """
         self.detail = detail
-        self.source = source
+        if source is not None:
+            self.source = source
         self.code = code
         self.id = id_
         self.links = links or {}
@@ -66,7 +67,7 @@ class InvalidFilters(BadRequest):
     """Error to warn that a specified filters in querystring parameter contains errors"""
 
     title = 'Invalid filters querystring parameter.'
-    source = {'parameter': 'filters'}
+    source = {'parameter': 'filter'}
 
 
 class InvalidSort(BadRequest):

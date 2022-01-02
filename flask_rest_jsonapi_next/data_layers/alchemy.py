@@ -21,6 +21,7 @@ from ..schema import get_model_field, get_related_schema, get_relationships, get
 
 import marshmallow
 
+
 class SqlalchemyDataLayer(BaseDataLayer):
     """Sqlalchemy data layer"""
 
@@ -62,12 +63,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
         self.session.add(obj)
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Object creation error: " + str(e), source={'pointer': '/data'})
+            raise
 
         self.after_create_object(obj, data, view_kwargs)
 
@@ -170,12 +168,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Update object error: " + str(e), source={'pointer': '/data'})
+            raise
 
         self.after_update_object(obj, data, view_kwargs)
 
@@ -196,12 +191,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
         self.session.delete(obj)
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Delete object error: " + str(e))
+            raise
 
         self.after_delete_object(obj, view_kwargs)
 
@@ -253,12 +245,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Create relationship error: " + str(e))
+            raise
 
         self.after_create_relationship(obj, updated, json_data, relationship_field, related_id_field, view_kwargs)
 

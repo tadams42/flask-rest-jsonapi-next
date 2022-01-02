@@ -12,7 +12,7 @@ from functools import wraps
 from flask import request, abort
 
 from .resource import ResourceList, ResourceRelationship
-from .decorators import jsonapi_exception_formatter
+from .error_responses import ErrorsAsJsonApi
 
 
 class Api(object):
@@ -60,6 +60,8 @@ class Api(object):
 
         self.app.config.setdefault('PAGE_SIZE', 30)
 
+        ErrorsAsJsonApi(app)
+
     def route(self, resource, view, *urls, **kwargs):
         """Create an api view.
 
@@ -102,7 +104,6 @@ class Api(object):
         :param oauth_manager: the oauth manager
         """
         @self.app.before_request
-        @jsonapi_exception_formatter
         def before_request():
             endpoint = request.endpoint
             resource = None
@@ -176,7 +177,6 @@ class Api(object):
                 return view
 
             @wraps(view)
-            @jsonapi_exception_formatter
             def decorated(*view_args, **view_kwargs):
                 self.check_permissions(view, view_args, view_kwargs, *args, **kwargs)
                 return view(*view_args, **view_kwargs)
