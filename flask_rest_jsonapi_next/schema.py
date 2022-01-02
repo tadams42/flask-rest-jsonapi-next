@@ -63,6 +63,9 @@ def compute_schema(schema_cls, default_kwargs, qs, include):
 
     # manage compound documents
     if include:
+        if schema.only is not None:
+            schema.only = set(schema.only).union(set(include))
+
         for include_path in include:
             field = include_path.split('.')[0]
             relation_field = schema.declared_fields[field]
