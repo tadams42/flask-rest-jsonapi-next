@@ -46,6 +46,12 @@ class ResourceMeta(MethodViewType):
             rv._data_layer = data_layer_cls(data_layer_kwargs)
 
         rv.decorators = (check_headers,)
+
+        for b in bases or []:
+            for dec in getattr(b, 'decorators', []) or []:
+                if dec not in rv.decorators:
+                    rv.decorators += (dec,)
+
         if 'decorators' in d:
             rv.decorators += d['decorators']
 
