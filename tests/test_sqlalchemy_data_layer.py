@@ -1096,9 +1096,27 @@ def test_wrong_accept_header(client, register_routes):
 
 # test Content-Type error
 def test_wrong_content_type(client, register_routes):
+    payload = { 'data': { 'type': 'person', 'attributes': { 'name': 'test' } } }
     with client:
-        response = client.post('/persons', headers={'Content-Type': 'application/vnd.api+json;q=0.8'})
-        assert response.status_code == 415, response.json['errors']
+        response = client.post('/persons', data=json.dumps(payload),
+                               content_type='foobar')
+        assert response.status_code == 415, response.json
+
+
+def test_ok_content_type1(client, register_routes, person):
+    payload = { 'data': { 'type': 'person', 'attributes': { 'name': 'test' } } }
+    with client:
+        response = client.post('/persons', data=json.dumps(payload),
+                               content_type='application/vnd.api+json;charset=UTF-8')
+        assert response.status_code == 201
+
+
+def test_ok_content_type2(client, register_routes, person):
+    payload = { 'data': { 'type': 'person', 'attributes': { 'name': 'test' } } }
+    with client:
+        response = client.post('/persons', data=json.dumps(payload),
+                               content_type='application/json')
+        assert response.status_code == 201
 
 
 @pytest.fixture(scope="module")
