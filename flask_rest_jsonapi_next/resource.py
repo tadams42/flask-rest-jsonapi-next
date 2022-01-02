@@ -6,6 +6,7 @@
 
 import inspect
 import json
+import re
 from six import with_metaclass
 
 from werkzeug.wrappers import Response
@@ -24,6 +25,7 @@ from .data_layers.base import BaseDataLayer
 from .data_layers.alchemy import SqlalchemyDataLayer
 from .utils import JSONEncoder
 from marshmallow_jsonapi.fields import BaseRelationship
+from werkzeug.datastructures import ImmutableMultiDict
 
 
 class ResourceMeta(MethodViewType):
@@ -233,7 +235,39 @@ class ResourceList(with_metaclass(ResourceMeta, Resource)):
         pass
 
     def get_collection(self, qs, kwargs, filters=None):
+        """
+        Implements override for ResourceList that allows lists as
+        values for simple filters, ie. following query strings are supported:
+        ?filter[foobar_id]=1,2,3
+        """
+
+        request_args = ImmutableMultiDict(
+            self._transform_simple_filter(k, v) for k, v in qs.qs.items(multi=True)
+        )
+
+        qs = QSManager(request_args, self.schema)
+
         return self._data_layer.get_collection(qs, kwargs, filters=filters)
+
+    _RE_IS_SIMPLE_FILTER = re.compile(r"^filter\[([A-Za-z_-]+)\]$")
+    _RE_IS_LIST_VALUE = re.compile(r"^\[(.+)\]$")
+
+    def _transform_simple_filter(self, k, v):
+        key_match = self._RE_IS_SIMPLE_FILTER.match(k)
+        value_match = self._RE_IS_LIST_VALUE.match(v)
+
+        if key_match and value_match:
+            k = 'filter'
+
+            try:
+                values = [int(_) for _ in value_match.groups()[0].split(',')]
+
+            except ValueError:
+                values = value_match.groups()[0].split(',')
+
+            v = json_dumps([{'name': key_match.groups()[0], 'op': 'in', 'val': values}])
+
+        return k, v
 
     def create_object(self, data, kwargs):
         return self._data_layer.create_object(data, kwargs)
