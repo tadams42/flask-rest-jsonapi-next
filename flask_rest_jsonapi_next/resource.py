@@ -155,7 +155,7 @@ class ResourceList(with_metaclass(ResourceMeta, Resource)):
 
         self.before_marshmallow(args, kwargs)
 
-        schema = compute_schema(self.schema,
+        schema = compute_schema(getattr(self, 'post_schema', self.schema),
                                 getattr(self, 'post_schema_kwargs', dict()),
                                 qs,
                                 qs.include)
@@ -179,7 +179,7 @@ class ResourceList(with_metaclass(ResourceMeta, Resource)):
 
         obj = self.create_object(data, kwargs)
 
-        result = schema.dump(obj)
+        result = getattr(self, 'post_response_schema', self.schema)(many=False).dump(obj)
 
         if result['data'].get('links', {}).get('self'):
             final_result = (result, 201, {'Location': result['data']['links']['self']})
@@ -268,7 +268,7 @@ class ResourceDetail(with_metaclass(ResourceMeta, Resource)):
 
         self.before_marshmallow(args, kwargs)
 
-        schema = compute_schema(self.schema,
+        schema = compute_schema(getattr(self, 'patch_schema', self.schema),
                                 schema_kwargs,
                                 qs,
                                 qs.include)
@@ -299,7 +299,7 @@ class ResourceDetail(with_metaclass(ResourceMeta, Resource)):
 
         obj = self.update_object(data, qs, kwargs)
 
-        result = schema.dump(obj)
+        result = getattr(self, 'patch_response_schema', self.schema)(many=False).dump(obj)
 
         final_result = self.after_patch(result)
 
