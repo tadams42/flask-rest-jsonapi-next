@@ -318,6 +318,12 @@ class BaseDataLayer(object):
         """
         raise NotImplementedError
 
+    def rollback(self):
+        """Rollbacks data layer to previous state if it supports that kind of behavior
+        or does nothing.
+        """
+        pass
+
     def bound_rewritable_methods(self, methods):
         """Bound additional methods to current instance
 

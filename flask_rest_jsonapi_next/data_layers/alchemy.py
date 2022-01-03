@@ -39,6 +39,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
             raise Exception("You must provide a model in data_layer_kwargs to use sqlalchemy data layer in {}"
                             .format(self.resource.__name__))
 
+    def rollback(self):
+        self.session.rollback()
+
     def create_object(self, data, view_kwargs):
         """Create an object through sqlalchemy
 
@@ -341,12 +344,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except Exception:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Update relationship error: " + str(e))
+            raise
 
         self.after_update_relationship(obj, updated, json_data, relationship_field, related_id_field, view_kwargs)
 
@@ -609,6 +609,10 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         except AttributeError:
             pass
+
+        except Exception:
+            self.session.rollback()
+            raise
 
     def after_create_object(self, obj, data, view_kwargs):
         """Provide additional data after object creation

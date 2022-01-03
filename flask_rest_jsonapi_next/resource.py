@@ -170,7 +170,13 @@ class ResourceList(with_metaclass(ResourceMeta, Resource)):
 
         self.before_post(args, kwargs, data=data)
 
-        obj = self.create_object(data, kwargs)
+        try:
+            obj = self.create_object(data, kwargs)
+        except Exception:
+            # Subclass can override self.create_object, but doesn't have to do it
+            # correctly. Let's protect from that.
+            self._data_layer.rollback()
+            raise
 
         result = getattr(self, 'post_response_schema', self.schema)(many=False).dump(obj)
 
@@ -310,7 +316,11 @@ class ResourceDetail(with_metaclass(ResourceMeta, Resource)):
 
         self.before_patch(args, kwargs, data=data)
 
-        obj = self.update_object(data, qs, kwargs)
+        try:
+            obj = self.update_object(data, qs, kwargs)
+        except Exception:
+            self._data_layer.rollback()
+            raise
 
         result = getattr(self, 'patch_response_schema', self.schema)(many=False).dump(obj)
 
