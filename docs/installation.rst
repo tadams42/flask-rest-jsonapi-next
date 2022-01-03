@@ -25,4 +25,4 @@ The development version can be downloaded from `its page at GitHub
     $ pip install virtualenv
 
 
-Flask-RESTful requires Python version 2.7, 3.4 or 3.5.
+flask-rest-jsonapi-next requires Python >= 3.7
