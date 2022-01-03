@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """This module contains the logic of resource management"""
 
 import inspect
-import json
+import re
 from six import with_metaclass
 
 from werkzeug.wrappers import Response
@@ -13,15 +15,16 @@ from flask.views import MethodView, MethodViewType
 from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from marshmallow import ValidationError
 
-from flask_rest_jsonapi_next.querystring import QueryStringManager as QSManager
-from flask_rest_jsonapi_next.pagination import add_pagination_links
-from flask_rest_jsonapi_next.exceptions import InvalidType, BadRequest, RelationNotFound
-from flask_rest_jsonapi_next.decorators import check_headers, check_method_requirements, jsonapi_exception_formatter
-from flask_rest_jsonapi_next.schema import compute_schema, get_relationships, get_model_field
-from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
-from flask_rest_jsonapi_next.data_layers.alchemy import SqlalchemyDataLayer
-from flask_rest_jsonapi_next.utils import JSONEncoder
+from .querystring import QueryStringManager as QSManager
+from .pagination import add_pagination_links
+from .exceptions import InvalidType, BadRequest, RelationNotFound
+from .decorators import check_headers, check_method_requirements
+from .schema import compute_schema, get_relationships, get_model_field
+from .data_layers.base import BaseDataLayer
+from .data_layers.alchemy import SqlalchemyDataLayer
+from .utils import json_dumps
 from marshmallow_jsonapi.fields import BaseRelationship
+from werkzeug.datastructures import ImmutableMultiDict
 
 
 class ResourceMeta(MethodViewType):
@@ -44,6 +47,12 @@ class ResourceMeta(MethodViewType):
             rv._data_layer = data_layer_cls(data_layer_kwargs)
 
         rv.decorators = (check_headers,)
+
+        for b in bases or []:
+            for dec in getattr(b, 'decorators', []) or []:
+                if dec not in rv.decorators:
+                    rv.decorators += (dec,)
+
         if 'decorators' in d:
             rv.decorators += d['decorators']
 
@@ -60,7 +69,6 @@ class Resource(MethodView):
 
         return super(Resource, cls).__new__(cls)
 
-    @jsonapi_exception_formatter
     def dispatch_request(self, *args, **kwargs):
         """Logic of how to handle a request"""
         method = getattr(self, request.method.lower(), None)
@@ -79,7 +87,7 @@ class Resource(MethodView):
         if not isinstance(response, tuple):
             if isinstance(response, dict):
                 response.update({'jsonapi': {'version': '1.0'}})
-            return make_response(json.dumps(response, cls=JSONEncoder), 200, headers)
+            return make_response(json_dumps(response), 200, headers)
 
         try:
             data, status_code, headers = response
@@ -102,7 +110,7 @@ class Resource(MethodView):
         elif isinstance(data, str):
             json_reponse = data
         else:
-            json_reponse = json.dumps(data, cls=JSONEncoder)
+            json_reponse = json_dumps(data)
 
         return make_response(json_reponse, status_code, headers)
 
@@ -153,31 +161,24 @@ class ResourceList(with_metaclass(ResourceMeta, Resource)):
 
         self.before_marshmallow(args, kwargs)
 
-        schema = compute_schema(self.schema,
+        schema = compute_schema(getattr(self, 'post_schema', self.schema),
                                 getattr(self, 'post_schema_kwargs', dict()),
                                 qs,
                                 qs.include)
 
-        try:
-            data = schema.load(json_data)
-        except IncorrectTypeError as e:
-            errors = e.messages
-            for error in errors['errors']:
-                error['status'] = '409'
-                error['title'] = "Incorrect type"
-            return errors, 409
-        except ValidationError as e:
-            errors = e.messages
-            for message in errors['errors']:
-                message['status'] = '422'
-                message['title'] = "Validation error"
-            return errors, 422
+        data = schema.load(json_data)
 
         self.before_post(args, kwargs, data=data)
 
-        obj = self.create_object(data, kwargs)
+        try:
+            obj = self.create_object(data, kwargs)
+        except Exception:
+            # Subclass can override self.create_object, but doesn't have to do it
+            # correctly. Let's protect from that.
+            self._data_layer.rollback()
+            raise
 
-        result = schema.dump(obj)
+        result = getattr(self, 'post_response_schema', self.schema)(many=False).dump(obj)
 
         if result['data'].get('links', {}).get('self'):
             final_result = (result, 201, {'Location': result['data']['links']['self']})
@@ -225,7 +226,39 @@ class ResourceList(with_metaclass(ResourceMeta, Resource)):
         pass
 
     def get_collection(self, qs, kwargs, filters=None):
+        """
+        Implements override for ResourceList that allows lists as
+        values for simple filters, ie. following query strings are supported:
+        ?filter[foobar_id]=1,2,3
+        """
+
+        request_args = ImmutableMultiDict(
+            self._transform_simple_filter(k, v) for k, v in qs.qs.items(multi=True)
+        )
+
+        qs = QSManager(request_args, self.schema)
+
         return self._data_layer.get_collection(qs, kwargs, filters=filters)
+
+    _RE_IS_SIMPLE_FILTER = re.compile(r"^filter\[([A-Za-z_-]+)\]$")
+    _RE_IS_LIST_VALUE = re.compile(r"^\[(.+)\]$")
+
+    def _transform_simple_filter(self, k, v):
+        key_match = self._RE_IS_SIMPLE_FILTER.match(k)
+        value_match = self._RE_IS_LIST_VALUE.match(v)
+
+        if key_match and value_match:
+            k = 'filter'
+
+            try:
+                values = [int(_) for _ in value_match.groups()[0].split(',')]
+
+            except ValueError:
+                values = value_match.groups()[0].split(',')
+
+            v = json_dumps([{'name': key_match.groups()[0], 'op': 'in', 'val': values}])
+
+        return k, v
 
     def create_object(self, data, kwargs):
         return self._data_layer.create_object(data, kwargs)
@@ -263,28 +296,16 @@ class ResourceDetail(with_metaclass(ResourceMeta, Resource)):
 
         qs = QSManager(request.args, self.schema)
         schema_kwargs = getattr(self, 'patch_schema_kwargs', dict())
+        schema_kwargs.update({'partial': True})
 
         self.before_marshmallow(args, kwargs)
 
-        schema = compute_schema(self.schema,
+        schema = compute_schema(getattr(self, 'patch_schema', self.schema),
                                 schema_kwargs,
                                 qs,
                                 qs.include)
 
-        try:
-            data = schema.load(json_data, partial=True)
-        except IncorrectTypeError as e:
-            errors = e.messages
-            for error in errors['errors']:
-                error['status'] = '409'
-                error['title'] = "Incorrect type"
-            return errors, 409
-        except ValidationError as e:
-            errors = e.messages
-            for message in errors['errors']:
-                message['status'] = '422'
-                message['title'] = "Validation error"
-            return errors, 422
+        data = schema.load(json_data)
 
         if 'id' not in json_data['data']:
             raise BadRequest('Missing id in "data" node',
@@ -295,9 +316,13 @@ class ResourceDetail(with_metaclass(ResourceMeta, Resource)):
 
         self.before_patch(args, kwargs, data=data)
 
-        obj = self.update_object(data, qs, kwargs)
+        try:
+            obj = self.update_object(data, qs, kwargs)
+        except Exception:
+            self._data_layer.rollback()
+            raise
 
-        result = schema.dump(obj)
+        result = getattr(self, 'patch_response_schema', self.schema)(many=False).dump(obj)
 
         final_result = self.after_patch(result)
 
@@ -563,3 +588,5 @@ class ResourceRelationship(with_metaclass(ResourceMeta, Resource)):
     def after_delete(self, result, status_code):
         """Hook to make custom work after delete method"""
         return result, status_code
+
+# fmt: on

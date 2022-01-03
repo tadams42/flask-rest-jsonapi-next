@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """This module contains the main class of the Api to initialize the Api, plug default decorators for each resources
 methods, speficy which blueprint to use, define the Api routes and plug additional oauth manager and permission manager
@@ -9,8 +11,8 @@ from functools import wraps
 
 from flask import request, abort
 
-from flask_rest_jsonapi_next.resource import ResourceList, ResourceRelationship
-from flask_rest_jsonapi_next.decorators import jsonapi_exception_formatter
+from .resource import ResourceList, ResourceRelationship
+from .error_responses import ErrorsAsJsonApi
 
 
 class Api(object):
@@ -58,10 +60,12 @@ class Api(object):
 
         self.app.config.setdefault('PAGE_SIZE', 30)
 
+        ErrorsAsJsonApi(app)
+
     def route(self, resource, view, *urls, **kwargs):
         """Create an api view.
 
-        :param Resource resource: a resource class inherited from flask_rest_jsonapi_next.resource.Resource
+        :param Resource resource: a resource class inherited from Resource
         :param str view: the view name
         :param list urls: the urls of the view
         :param dict kwargs: additional options of the route
@@ -100,7 +104,6 @@ class Api(object):
         :param oauth_manager: the oauth manager
         """
         @self.app.before_request
-        @jsonapi_exception_formatter
         def before_request():
             endpoint = request.endpoint
             resource = None
@@ -174,7 +177,6 @@ class Api(object):
                 return view
 
             @wraps(view)
-            @jsonapi_exception_formatter
             def decorated(*view_args, **view_kwargs):
                 self.check_permissions(view, view_args, view_kwargs, *args, **kwargs)
                 return view(*view_args, **view_kwargs)
@@ -193,3 +195,5 @@ class Api(object):
         :param dict kwargs: decorator kwargs
         """
         raise NotImplementedError
+
+# fmt: on

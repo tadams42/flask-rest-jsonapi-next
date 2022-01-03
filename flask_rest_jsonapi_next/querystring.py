@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """Helper to deal with querystring parameters according to jsonapi specification"""
 
@@ -6,8 +8,8 @@ import json
 
 from flask import current_app
 
-from flask_rest_jsonapi_next.exceptions import BadRequest, InvalidFilters, InvalidSort, InvalidField, InvalidInclude
-from flask_rest_jsonapi_next.schema import get_model_field, get_relationships, get_schema_from_type
+from .exceptions import BadRequest, InvalidFilters, InvalidSort, InvalidField, InvalidInclude
+from .schema import get_model_field, get_relationships, get_schema_from_type
 
 
 class QueryStringManager(object):
@@ -208,3 +210,5 @@ class QueryStringManager(object):
                                          .format(current_app.config['MAX_INCLUDE_DEPTH']))
 
         return include_param.split(',') if include_param else []
+
+# fmt: on

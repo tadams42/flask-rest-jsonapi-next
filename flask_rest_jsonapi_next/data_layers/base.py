@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """The base class of a data layer. If you want to create your own data layer you must inherite from this base class"""
 
@@ -316,6 +318,12 @@ class BaseDataLayer(object):
         """
         raise NotImplementedError
 
+    def rollback(self):
+        """Rollbacks data layer to previous state if it supports that kind of behavior
+        or does nothing.
+        """
+        pass
+
     def bound_rewritable_methods(self, methods):
         """Bound additional methods to current instance
 
@@ -324,3 +332,5 @@ class BaseDataLayer(object):
         for key, value in methods.items():
             if key in self.REWRITABLE_METHODS:
                 setattr(self, key, types.MethodType(value, self))
+
+# fmt: on

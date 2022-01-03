@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.32.0 (fork-0.32.0) (2022-01-03)
+
+- feat: while app exception handling and JSON:API error responses
+- feat: use all decorators from all Resource subclasses
+- feat: POST and PATCH schemas can be separately declared from `Resource.schema`
+- optional call to `model.validate()` in data layer
+- support for CSV in simple filter URL parameters (`?filter[foo]=1,2,3`)
+- use `rapidjson` if it is installed
+
 ## v0.31.2 (2021-12-28)
 
 - initial release based on

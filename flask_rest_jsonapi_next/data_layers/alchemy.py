@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# isort: skip_file
+# fmt: off
 
 """This module is a CRUD interface between resource managers and the sqlalchemy ORM"""
 
@@ -11,11 +13,13 @@ from marshmallow import class_registry
 from marshmallow.base import SchemaABC
 
 from flask import current_app
-from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
-from flask_rest_jsonapi_next.exceptions import RelationNotFound, RelatedObjectNotFound, JsonApiException,\
+from .base import BaseDataLayer
+from ..exceptions import RelationNotFound, RelatedObjectNotFound, JsonApiException,\
     InvalidSort, ObjectNotFound, InvalidInclude, InvalidType
-from flask_rest_jsonapi_next.data_layers.filtering.alchemy import create_filters
-from flask_rest_jsonapi_next.schema import get_model_field, get_related_schema, get_relationships, get_nested_fields, get_schema_field
+from .filtering.alchemy import create_filters
+from ..schema import get_model_field, get_related_schema, get_relationships, get_nested_fields, get_schema_field
+
+import marshmallow
 
 
 class SqlalchemyDataLayer(BaseDataLayer):
@@ -34,6 +38,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
         if not hasattr(self, 'model'):
             raise Exception("You must provide a model in data_layer_kwargs to use sqlalchemy data layer in {}"
                             .format(self.resource.__name__))
+
+    def rollback(self):
+        self.session.rollback()
 
     def create_object(self, data, view_kwargs):
         """Create an object through sqlalchemy
@@ -54,15 +61,14 @@ class SqlalchemyDataLayer(BaseDataLayer):
         self.apply_relationships(data, obj)
         self.apply_nested_fields(data, obj)
 
+        self.before_commit(obj)
+
         self.session.add(obj)
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Object creation error: " + str(e), source={'pointer': '/data'})
+            raise
 
         self.after_create_object(obj, data, view_kwargs)
 
@@ -161,14 +167,13 @@ class SqlalchemyDataLayer(BaseDataLayer):
         self.apply_relationships(data, obj)
         self.apply_nested_fields(data, obj)
 
+        self.before_commit(obj)
+
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Update object error: " + str(e), source={'pointer': '/data'})
+            raise
 
         self.after_update_object(obj, data, view_kwargs)
 
@@ -189,12 +194,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
         self.session.delete(obj)
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Delete object error: " + str(e))
+            raise
 
         self.after_delete_object(obj, view_kwargs)
 
@@ -246,12 +248,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Create relationship error: " + str(e))
+            raise
 
         self.after_create_relationship(obj, updated, json_data, relationship_field, related_id_field, view_kwargs)
 
@@ -345,12 +344,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except JsonApiException as e:
+        except Exception:
             self.session.rollback()
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            raise JsonApiException("Update relationship error: " + str(e))
+            raise
 
         self.after_update_relationship(obj, updated, json_data, relationship_field, related_id_field, view_kwargs)
 
@@ -605,6 +601,19 @@ class SqlalchemyDataLayer(BaseDataLayer):
         """
         pass
 
+    def before_commit(self, obj):
+        try:
+            errors = obj.validate()
+            if errors:
+                raise marshmallow.ValidationError(errors)
+
+        except AttributeError:
+            pass
+
+        except Exception:
+            self.session.rollback()
+            raise
+
     def after_create_object(self, obj, data, view_kwargs):
         """Provide additional data after object creation
 
@@ -774,3 +783,5 @@ class SqlalchemyDataLayer(BaseDataLayer):
         :param dict view_kwargs: kwargs from the resource view
         """
         pass
+
+# fmt: on
