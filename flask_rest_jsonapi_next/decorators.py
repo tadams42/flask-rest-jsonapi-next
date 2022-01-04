@@ -28,10 +28,11 @@ def check_headers(func):
                 or (
                     request.mimetype != 'application/vnd.api+json'
                     and request.mimetype != 'application/json'
+                    and request.mimetype != 'multipart/form-data'
                 )
             ):
                 raise JsonApiException(
-                    detail="Content-Type header must be application/vnd.api+json or application/json",
+                    detail="Content-Type header must be application/vnd.api+json or application/json or multipart/form-data",
                     title="Invalid request header",
                     status=415,
                 )
