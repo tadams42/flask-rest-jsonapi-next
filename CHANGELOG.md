@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.32.1 (fork-0.32.1) (2022-01-04)
+
+- feat: allows "multipart/form-data" content type on all POST and PATCH requests
+  - this is not ideal, but we need it to support file uploads for some of our APIs
+  - in the future, proper content type negotiation must be implemented
+
 ## 0.32.0 (fork-0.32.0) (2022-01-03)
 
 - feat: while app exception handling and JSON:API error responses
