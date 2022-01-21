@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.32.2 (fork-0.32.2) (2022-01-21)
+
+- fix: API returns 404 on `/resource/<int:id>` routes when no object is found
+
 ## 0.32.1 (fork-0.32.1) (2022-01-04)
 
 - feat: allows "multipart/form-data" content type on all POST and PATCH requests

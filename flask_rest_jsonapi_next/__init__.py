@@ -2,7 +2,7 @@
 # isort: skip_file
 # fmt: off
 
-__version__ = "0.32.1"
+__version__ = "0.32.2"
 
 from .api import Api
 from .resource import ResourceList, ResourceDetail, ResourceRelationship
