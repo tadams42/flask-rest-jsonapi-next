@@ -96,10 +96,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
         if qs is not None and getattr(self, 'eagerload_includes', True):
             query = self.eagerload_includes(query, qs)
 
-        try:
-            obj = query.one()
-        except NoResultFound:
-            obj = None
+        obj = query.one()
 
         self.after_get_object(obj, view_kwargs)
 
