@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.32.3 (fork-0.32.2) (2022-02-04)
+
+- fix: marshmallow3 compatibility - `fields.List.container` attribute no longer exists
+
 ## 0.32.2 (fork-0.32.2) (2022-01-21)
 
 - fix: API returns 404 on `/resource/<int:id>` routes when no object is found
