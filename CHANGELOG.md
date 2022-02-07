@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.32.3 (fork-0.32.2) (2022-02-04)
+## 0.32.4 (fork-0.32.4) (2022-02-07)
+
+- fix: more problems with content negotiation: API was allowing different `Accept`
+  header, but was still forcing `Content-Type: application/vnd.api+json` in responses
+
+## 0.32.3 (fork-0.32.3) (2022-02-04)
 
 - fix: marshmallow3 compatibility - `fields.List.container` attribute no longer exists
 
