@@ -81,7 +81,8 @@ class Resource(MethodView):
         response = method(*args, **kwargs)
 
         if isinstance(response, Response):
-            response.headers.add('Content-Type', 'application/vnd.api+json')
+            if "Content-Type" not in response.headers:
+                response.headers.add('Content-Type', 'application/vnd.api+json')
             return response
 
         if not isinstance(response, tuple):
@@ -91,7 +92,8 @@ class Resource(MethodView):
 
         try:
             data, status_code, headers = response
-            headers.update({'Content-Type': 'application/vnd.api+json'})
+            if "Content-Type" not in headers:
+                headers.update({'Content-Type': 'application/vnd.api+json'})
         except ValueError:
             pass
 
@@ -104,7 +106,8 @@ class Resource(MethodView):
             data.update({'jsonapi': {'version': '1.0'}})
 
         if isinstance(data, FlaskResponse):
-            data.headers.add('Content-Type', 'application/vnd.api+json')
+            if "Content-Type" not in data.headers:
+                data.headers.add('Content-Type', 'application/vnd.api+json')
             data.status_code = status_code
             return data
         elif isinstance(data, str):
