@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.32.6 (fork-0.32.5) (unreleased)
+
+## 0.32.5 (fork-0.32.5) (2022-02-16)
+
+- fix: API blueprint should respech `Flask.config.APPLICATION_ROOT`
+
 ## 0.32.4 (fork-0.32.4) (2022-02-07)
 
 - fix: more problems with content negotiation: API was allowing different `Accept`

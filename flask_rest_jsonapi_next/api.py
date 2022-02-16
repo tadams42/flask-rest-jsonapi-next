@@ -8,6 +8,7 @@ methods, speficy which blueprint to use, define the Api routes and plug addition
 
 import inspect
 from functools import wraps
+from pathlib import Path
 
 from flask import request, abort
 
@@ -51,12 +52,20 @@ class Api(object):
                        *resource['urls'],
                        url_rule_options=resource['url_rule_options'])
 
+        root_url_prefix = Path(self.app.config.get("APPLICATION_ROOT", "/"))
+
         if self.blueprint is not None:
-            self.app.register_blueprint(self.blueprint)
+            self.app.register_blueprint(
+                self.blueprint,
+                url_prefix=str(root_url_prefix / f"./{self.blueprint.url_prefix or ''}"),
+            )
 
         if additional_blueprints is not None:
             for blueprint in additional_blueprints:
-                self.app.register_blueprint(blueprint)
+                self.app.register_blueprint(
+                    blueprint,
+                    url_prefix=str(root_url_prefix / f"./{blueprint.url_prefix or ''}"),
+                )
 
         self.app.config.setdefault('PAGE_SIZE', 30)
 
