@@ -2,6 +2,10 @@
 
 ## 0.32.6 (fork-0.32.5) (unreleased)
 
+- feat: added `register_at` parameter to `Api.__init__()`
+- fix: `Api` shouldn't use `Flask.config.APLICATION_ROOT` for registering blueprint;
+  this variable was not meant for that purpose
+
 ## 0.32.5 (fork-0.32.5) (2022-02-16)
 
 - fix: API blueprint should respech `Flask.config.APPLICATION_ROOT`
