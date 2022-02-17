@@ -19,18 +19,21 @@ from .error_responses import ErrorsAsJsonApi
 class Api(object):
     """The main class of the Api"""
 
-    def __init__(self, app=None, blueprint=None, decorators=None):
+    def __init__(self, app=None, blueprint=None, decorators=None, register_at="/"):
         """Initialize an instance of the Api
 
         :param app: the flask application
         :param blueprint: a flask blueprint
         :param tuple decorators: a tuple of decorators plugged to each resource methods
+        :param register_at: passed to ``Flask.register_blueprint()`` in place of
+                            ``url_prefix`` parameter
         """
         self.app = app
         self.blueprint = blueprint
         self.resources = []
         self.resource_registry = []
         self.decorators = decorators or tuple()
+        self.register_at = register_at
 
         if app is not None:
             self.init_app(app, blueprint)
@@ -52,7 +55,7 @@ class Api(object):
                        *resource['urls'],
                        url_rule_options=resource['url_rule_options'])
 
-        root_url_prefix = Path(self.app.config.get("APPLICATION_ROOT", "/"))
+        root_url_prefix = Path(self.register_at or "/")
 
         if self.blueprint is not None:
             self.app.register_blueprint(
