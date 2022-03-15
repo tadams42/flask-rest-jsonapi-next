@@ -4,6 +4,9 @@
 
 """Helpers to deal with marshmallow schemas"""
 
+import copy
+from typing import Optional, Tuple, Set
+
 from marshmallow import class_registry
 from marshmallow.base import SchemaABC
 from marshmallow_jsonapi.fields import Relationship, List, Nested
@@ -43,29 +46,15 @@ def compute_schema(schema_cls, default_kwargs, qs, include):
             if '.' in include_path:
                 related_includes[field] += ['.'.join(include_path.split('.')[1:])]
 
-    # make sure id field is in only parameter unless marshamllow will raise an Exception
-    if schema_kwargs.get('only') is not None and 'id' not in schema_kwargs['only']:
-        schema_kwargs['only'] += ('id',)
+    only = _compute_sparse(schema_cls, default_kwargs, qs, include)
+    if only is not None:
+        schema_kwargs["only"] = only
 
     # create base schema instance
     schema = schema_cls(**schema_kwargs)
 
-    # manage sparse fieldsets
-    if schema.opts.type_ in qs.fields:
-        tmp_only = set(schema.declared_fields.keys()) & set(qs.fields[schema.opts.type_])
-        if schema.only:
-            tmp_only &= set(schema.only)
-        schema.only = tuple(tmp_only)
-
-        # make sure again that id field is in only parameter unless marshamllow will raise an Exception
-        if schema.only is not None and 'id' not in schema.only:
-            schema.only += ('id',)
-
     # manage compound documents
     if include:
-        if schema.only is not None:
-            schema.only = set(schema.only).union(set(include))
-
         for include_path in include:
             field = include_path.split('.')[0]
             relation_field = schema.declared_fields[field]
@@ -176,3 +165,49 @@ def get_schema_field(schema, field):
     raise Exception("Couldn't find schema field from {}".format(field))
 
 # fmt: on
+
+
+def _compute_sparse(
+    schema_cls, default_kwargs, qs, include
+) -> Optional[Tuple[str, ...]]:
+    """
+    Compute "only" keyword argument for marshmallow.Schema.
+
+    We need this because following has no effect:
+
+        schema = FooSchema()
+        schema.only = ("field1", "field2", ...)
+
+    marsmallow.Schema.only should really, really, really be private attribute or
+    read-only property: setting it's value after instance had been __init__-ialized
+    has no effect.
+    """
+    # manage include_data parameter of the schema
+    schema_kwargs = {k: v for k, v in (default_kwargs or dict()).items()}
+
+    only = schema_kwargs.get("only")
+    # make sure id field is in only parameter unless marshmallow will raise an Exception
+    if only is not None and "id" not in only:
+        only = set(only)
+        only.add("id")
+        schema_kwargs["only"] = tuple(only)
+
+    schema = schema_cls(**schema_kwargs)
+
+    # manage sparse fieldsets
+    if schema.opts.type_ in qs.fields:
+        only = set(schema.declared_fields.keys()) & set(qs.fields[schema.opts.type_])
+        if schema.only:
+            only &= set(schema.only)
+
+        if only is not None and "id" not in only:
+            only.add("id")
+
+    # manage compound documents
+    if include and only is not None:
+        only = only.union(set(include))
+
+    if only is not None:
+        return tuple(only)
+
+    return None
