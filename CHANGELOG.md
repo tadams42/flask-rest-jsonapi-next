@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## 0.32.6 (fork-0.32.5) (unreleased)
+## 0.32.8 (fork-0.32.8) (unreleased)
+
+## 0.32.7 (fork-0.32.7) (2022-02-15)
+
+- fix: sparse fields were not applied correctly
+
+## 0.32.6 (fork-0.32.6) (2022-03-15)
 
 - feat: added `register_at` parameter to `Api.__init__()`
 - fix: `Api` shouldn't use `Flask.config.APLICATION_ROOT` for registering blueprint;
