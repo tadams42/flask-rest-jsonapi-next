@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.32.8 (fork-0.32.8) (unreleased)
+## 0.32.9 (fork-0.32.9) (unreleased)
+
+## 0.32.8 (fork-0.32.8) (2022-02-15)
+
+- fix: PATCH was not rising ValidationError for fields with `required=True`, when those
+  fields were missing from `request.body`
 
 ## 0.32.7 (fork-0.32.7) (2022-02-15)
 
