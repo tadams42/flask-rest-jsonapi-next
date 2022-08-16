@@ -219,7 +219,7 @@ def address_schema():
     class AddressSchema(MarshmallowSchema):
         street = fields.String(required=True)
         city = fields.String(required=True)
-        state = fields.String(missing='NC')
+        state = fields.String(load_default='NC')
         zip = fields.String(required=True)
 
     yield AddressSchema
@@ -277,8 +277,8 @@ def computer_schema():
         id = fields.Integer(as_string=True)
         serial = fields.Str(required=True)
         owner = Relationship(attribute='person',
-                             default=None,
-                             missing=None,
+                             dump_default=None,
+                             load_default=None,
                              related_view='api.person_detail',
                              related_view_kwargs={'person_id': '<person.person_id>'},
                              schema='PersonSchema',

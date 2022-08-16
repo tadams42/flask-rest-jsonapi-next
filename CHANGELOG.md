@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## 0.32.9 (fork-0.32.9) (unreleased)
+## 0.33.0 (fork-0.33.0) (unreleased)
+
+- supporting Flask only >= 2.2.0
+  - Flask dropped metaclasses in favor of `__init_subclass__` (which is great) but
+    our `Resource` class relied on metaclasses too
+  - supporting both mechanisms, metaclasses and `__init_subclass__`, is not feasible,
+    thus dropping support for older flask versions
 
 ## 0.32.8 (fork-0.32.8) (2022-02-15)
 
