@@ -1,6 +1,75 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=63", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "flask-rest-jsonapi-next"
+version = "0.33.0"
+description = "Flask extension to create REST web api according to JSONAPI 1.0 specification with Flask, Marshmallow and data provider of your choice (SQLAlchemy, MongoDB, ...)"
+readme = "README.md"
+classifiers = [
+	"Framework :: Flask",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.7",
+	"Programming Language :: Python :: 3.8",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3 :: Only",
+	"License :: OSI Approved :: MIT License",
+]
+dependencies = [
+	"six",
+	"Flask >= 2.2.0",
+	"marshmallow >= 3",
+	"marshmallow_jsonapi",
+	"sqlalchemy",
+	"requests",
+]
+keywords = [
+	"web",
+	"api",
+	"rest",
+	"jsonapi",
+	"flask",
+	"sqlalchemy",
+	"marshmallow",
+]
+license = { text = "MIT" }
+requires-python = ">=3.7"
+authors = [{ name = "original miLibris/flask-rest-jsonapi contributors" }]
+maintainers = [
+	{ name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" },
+]
+
+[project.urls]
+Source = "https://github.com/tadams42/flask-rest-jsonapi-next"
+Documentation = "https://flask-rest-jsonapi-next.readthedocs.io/en/latest/"
+
+[project.optional-dependencies]
+dev = [
+	"black",
+	"bump2version",
+	"check-manifest",
+	"furo",
+	"ipython",
+	"isort",
+	"myst-parser",
+	"pytest",
+	"sphinx-copybutton",
+	"sphinx",
+	"twine",
+]
+docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
+tests = ["check-manifest", "pytest"]
+
+
+[tool.setuptools]
+zip-safe = false
+platforms = ["any"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+exclude = ["tests"]
 
 [tool.isort]
 profile = "black"

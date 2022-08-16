@@ -1,0 +1,37 @@
+name: tests
+
+on:
+  push:
+    branches-ignore:
+      # Once thing had been pushed to master branch, tests have already had to run and
+      # pass so no need to run them again
+      - "master"
+
+
+jobs:
+
+  run_tests:
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    name: "${{ matrix.os }} 🔹 🐍 ${{ matrix.python-version }}"
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: "📦 set up 🐍 ${{ matrix.python-version }}"
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
+      - name: "📦 ensure latest 🐍 pip"
+        run: python -m pip install --upgrade pip
+      - name: "📦 ensure 🐍 wheel"
+        run: pip install wheel
+      - name: "📦 install flask-rest-jsonoapi-next"
+        run: pip install .[tests]
+
+      - name: "run tests"
+        run: pytest
