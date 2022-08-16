@@ -1,7 +1,8 @@
 # CHANGELOG
 
-## 0.33.0 (fork-0.33.0) (unreleased)
+## 0.33.0 (fork-0.33.0) (2022-08-16)
 
+- swithced CI provider, Travis --> GitHub
 - supporting Flask only >= 2.2.0
   - Flask dropped metaclasses in favor of `__init_subclass__` (which is great) but
     our `Resource` class relied on metaclasses too
