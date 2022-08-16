@@ -23,6 +23,7 @@ dependencies = [
 	"marshmallow >= 3",
 	"marshmallow_jsonapi",
 	"sqlalchemy",
+	"requests",
 ]
 keywords = [
 	"web",
