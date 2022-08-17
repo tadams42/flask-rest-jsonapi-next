@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.33.1 (fork-0.33.1) (2022-08-17)
+
+- full indepenedance on which JSON library is used
+  - use of custom JSON implementation (ie. `rapidjson`, `simplejson`) is now fully
+    controlled by `flask`:
+  - we use `flask.json.dumps` everywhere and then the app itself configures what this
+    `dumps` call does - uses standard JSON library or custom one
+
 ## 0.33.0 (fork-0.33.0) (2022-08-16)
 
 - swithced CI provider, Travis --> GitHub

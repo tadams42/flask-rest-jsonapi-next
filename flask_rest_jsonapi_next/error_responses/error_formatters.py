@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 import flask
 import requests
 
-from ..json_utilities import json
 from .exception_converters import convert
 
 JSONAPI_RESPONSE_HEADERS = {"Content-Type": "application/vnd.api+json"}
@@ -50,7 +49,9 @@ def _error_response(data: Union[List[dict], dict], request_id: str) -> flask.Res
 
     status_code = next(iter(body["errors"]), dict()).get("status", requests.codes["✗"])
 
-    return flask.make_response(json.dumps(body), status_code, JSONAPI_RESPONSE_HEADERS)
+    return flask.make_response(
+        flask.json.dumps(body), status_code, JSONAPI_RESPONSE_HEADERS
+    )
 
 
 def _normalize_single_error(
