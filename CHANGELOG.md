@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.33.1 (fork-0.33.1) (unreleased)
+## 0.33.1 (fork-0.33.1) (2022-08-17)
 
 - full indepenedance on which JSON library is used
   - use of custom JSON implementation (ie. `rapidjson`, `simplejson`) is now fully
