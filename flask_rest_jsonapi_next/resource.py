@@ -8,6 +8,7 @@ import inspect
 import re
 
 from werkzeug.wrappers import Response
+import flask
 from flask import request, url_for, make_response
 from flask.wrappers import Response as FlaskResponse
 from flask.views import MethodView
@@ -21,7 +22,6 @@ from .decorators import check_headers, check_method_requirements
 from .schema import compute_schema, get_relationships, get_model_field
 from .data_layers.base import BaseDataLayer
 from .data_layers.alchemy import SqlalchemyDataLayer
-from .utils import json_dumps
 from marshmallow_jsonapi.fields import BaseRelationship
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -83,7 +83,7 @@ class Resource(MethodView):
         if not isinstance(response, tuple):
             if isinstance(response, dict):
                 response.update({'jsonapi': {'version': '1.0'}})
-            return make_response(json_dumps(response), 200, headers)
+            return make_response(flask.json.dumps(response), 200, headers)
 
         try:
             data, status_code, headers = response
@@ -108,7 +108,7 @@ class Resource(MethodView):
         elif isinstance(data, str):
             json_reponse = data
         else:
-            json_reponse = json_dumps(data)
+            json_reponse = flask.json.dumps(data)
 
         return make_response(json_reponse, status_code, headers)
 
@@ -254,7 +254,7 @@ class ResourceList(Resource):
             except ValueError:
                 values = value_match.groups()[0].split(',')
 
-            v = json_dumps([{'name': key_match.groups()[0], 'op': 'in', 'val': values}])
+            v = flask.json.dumps([{'name': key_match.groups()[0], 'op': 'in', 'val': values}])
 
         return k, v
 

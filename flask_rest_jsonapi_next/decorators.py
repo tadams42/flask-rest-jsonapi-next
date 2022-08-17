@@ -11,7 +11,6 @@ from flask import request, make_response, jsonify, current_app
 
 from .errors import jsonapi_errors
 from .exceptions import JsonApiException
-from .utils import JSONEncoder
 
 
 def check_headers(func):

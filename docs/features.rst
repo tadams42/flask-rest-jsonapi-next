@@ -121,12 +121,6 @@ which is equivalent to:
 
    where foo IN (1, 2)
 
-automatic use of `rapidjson` module if it is installed
-______________________________________________________
-
-We'd implemented use of `rapidjson` module (if it is installed and importable) through
-whole `flask-rest-jsonapi`.
-
 Compared to other similar projects
 ----------------------------------
 
