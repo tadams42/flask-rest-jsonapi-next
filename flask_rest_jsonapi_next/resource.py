@@ -223,7 +223,7 @@ class ResourceList(Resource):
     def before_marshmallow(self, args, kwargs):
         pass
 
-    def get_collection(self, qs, kwargs, filters=None):
+    def get_collection(self, qs, kwargs, filters=None, as_query=True):
         """
         Implements override for ResourceList that allows lists as
         values for simple filters, ie. following query strings are supported:
@@ -234,9 +234,13 @@ class ResourceList(Resource):
             self._transform_simple_filter(k, v) for k, v in qs.qs.items(multi=True)
         )
 
-        qs = QSManager(request_args, self.schema)
+        qs = QSManager(
+            request_args, self.schema, qs.allow_disable_pagination, qs.max_page_size
+        )
 
-        return self._data_layer.get_collection(qs, kwargs, filters=filters)
+        return self._data_layer.get_collection(
+            qs, kwargs, filters=filters, as_query=as_query
+        )
 
     _RE_IS_SIMPLE_FILTER = re.compile(r"^filter\[([A-Za-z_-]+)\]$")
     _RE_IS_LIST_VALUE = re.compile(r"^\[(.+)\]$")

@@ -62,12 +62,15 @@ class BaseDataLayer(object):
         """
         raise NotImplementedError
 
-    def get_collection(self, qs, view_kwargs, filters=None):
-        """Retrieve a collection of objects
+    def get_collection(self, qs, view_kwargs, filters=None, as_query=False):
+        """Retrieve a collection of objects through sqlalchemy
 
         :param QueryStringManager qs: a querystring manager to retrieve information from url
         :param dict view_kwargs: kwargs from the resource view
         :param dict filters: A dictionary of key/value filters to apply to the eventual query
+        :param bool as_query: If True, and if possible by concrete implementation,
+            then return value will be tuple of count and query object instead of
+            tuple of count and list of objects. May be more performant in some cases.
         :return tuple: the number of object and the list of objects
         """
         raise NotImplementedError

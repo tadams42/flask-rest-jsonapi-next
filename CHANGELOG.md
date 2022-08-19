@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 0.34.0 (fork-0.34.0) (2022-08-19)
+
+- feat: allow injecting page parameters into `Querystring` instances
+  This allows client app to override pagination properties in special cases, while still
+  respecting app config everywhere else.
+  Example for this: app wants to generate Excel file as response and ignore pagination
+  in that request, but still use JSON:API request parsing. In this case, app would
+  implement it's own `Resource.get()` method which would mostly the same thing as base
+  class one, except it would temporarily disable pagination for given request.
+
+- feat: SQLAlchemy data layer returns `Query` objects instead of lists
+  Speeds up large data requests (ie. when application requests JSON:API data but
+  disables pagination)
+
 ## 0.33.1 (fork-0.33.1) (2022-08-17)
 
 - full indepenedance on which JSON library is used

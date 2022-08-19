@@ -102,12 +102,15 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         return obj
 
-    def get_collection(self, qs, view_kwargs, filters=None):
+    def get_collection(self, qs, view_kwargs, filters=None, as_query=True):
         """Retrieve a collection of objects through sqlalchemy
 
         :param QueryStringManager qs: a querystring manager to retrieve information from url
         :param dict view_kwargs: kwargs from the resource view
         :param dict filters: A dictionary of key/value filters to apply to the eventual query
+        :param bool as_query: If True, and if possible by concrete implementation,
+            then return value will be tuple of count and query object instead of
+            tuple of count and list of objects. May be more performant in some cases.
         :return tuple: the number of object and the list of objects
         """
         self.before_get_collection(qs, view_kwargs)
@@ -130,7 +133,10 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         query = self.paginate_query(query, qs.pagination)
 
-        collection = query.all()
+        if as_query:
+            collection = query
+        else:
+            collection = query.all()
 
         collection = self.after_get_collection(collection, qs, view_kwargs)
 
