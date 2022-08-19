@@ -234,7 +234,9 @@ class ResourceList(Resource):
             self._transform_simple_filter(k, v) for k, v in qs.qs.items(multi=True)
         )
 
-        qs = QSManager(request_args, self.schema)
+        qs = QSManager(
+            request_args, self.schema, qs.allow_disable_pagination, qs.max_page_size
+        )
 
         return self._data_layer.get_collection(qs, kwargs, filters=filters)
 

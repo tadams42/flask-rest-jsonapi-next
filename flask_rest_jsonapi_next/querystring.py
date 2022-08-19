@@ -24,7 +24,7 @@ class QueryStringManager(object):
         'q'
     )
 
-    def __init__(self, querystring, schema):
+    def __init__(self, querystring, schema, allow_disable_pagination=None, max_page_size=None):
         """Initialization instance
 
         :param dict querystring: query string dict from request.args
@@ -34,6 +34,9 @@ class QueryStringManager(object):
 
         self.qs = querystring
         self.schema = schema
+
+        self.allow_disable_pagination = allow_disable_pagination
+        self.max_page_size = max_page_size
 
     def _get_key_values(self, name):
         """Return a dict containing key / values items for a given key, used for items like filters, page, etc.
@@ -130,12 +133,20 @@ class QueryStringManager(object):
             except ValueError:
                 raise BadRequest("Parse error", source={'parameter': 'page[{}]'.format(key)})
 
-        if current_app.config.get('ALLOW_DISABLE_PAGINATION', True) is False and int(result.get('size', 1)) == 0:
+        if self.allow_disable_pagination is None:
+            self.allow_disable_pagination = current_app.config.get(
+                'ALLOW_DISABLE_PAGINATION', True
+            )
+
+        if self.max_page_size is None:
+            self.max_page_size = current_app.config.get('MAX_PAGE_SIZE', None)
+
+        if not self.allow_disable_pagination and int(result.get('size', 1)) == 0:
             raise BadRequest("You are not allowed to disable pagination", source={'parameter': 'page[size]'})
 
-        if current_app.config.get('MAX_PAGE_SIZE') is not None and 'size' in result:
-            if int(result['size']) > current_app.config['MAX_PAGE_SIZE']:
-                raise BadRequest("Maximum page size is {}".format(current_app.config['MAX_PAGE_SIZE']),
+        if self.max_page_size is not None and 'size' in result:
+            if int(result['size']) > self.max_page_size:
+                raise BadRequest(f"Maximum page size is {self.max_page_size}",
                                  source={'parameter': 'page[size]'})
 
         return result
