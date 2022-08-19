@@ -223,7 +223,7 @@ class ResourceList(Resource):
     def before_marshmallow(self, args, kwargs):
         pass
 
-    def get_collection(self, qs, kwargs, filters=None, as_query=False):
+    def get_collection(self, qs, kwargs, filters=None, as_query=True):
         """
         Implements override for ResourceList that allows lists as
         values for simple filters, ie. following query strings are supported:

@@ -102,7 +102,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         return obj
 
-    def get_collection(self, qs, view_kwargs, filters=None, as_query=False):
+    def get_collection(self, qs, view_kwargs, filters=None, as_query=True):
         """Retrieve a collection of objects through sqlalchemy
 
         :param QueryStringManager qs: a querystring manager to retrieve information from url
