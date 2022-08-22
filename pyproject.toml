@@ -76,3 +76,14 @@ exclude = ["tests"]
 [tool.isort]
 profile = "black"
 skip_gitignore = true
+
+[tool.coverage.paths]
+source = ["flask_rest_jsonapi_next"]
+
+[tool.coverage.run]
+branch = true
+source = ["flask_rest_jsonapi_next"]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
