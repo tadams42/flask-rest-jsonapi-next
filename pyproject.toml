@@ -62,7 +62,7 @@ dev = [
 	"twine",
 ]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
-tests = ["check-manifest", "pytest"]
+tests = ["check-manifest", "pytest", "coverage"]
 
 
 [tool.setuptools]
