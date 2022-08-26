@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flask-rest-jsonapi-next"
-version = "0.34.0"
+version = "0.34.1"
 description = "Flask extension to create REST web api according to JSONAPI 1.0 specification with Flask, Marshmallow and data provider of your choice (SQLAlchemy, MongoDB, ...)"
 readme = "README.md"
 classifiers = [
@@ -62,7 +62,7 @@ dev = [
 	"twine",
 ]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
-tests = ["check-manifest", "pytest"]
+tests = ["check-manifest", "pytest", "coverage"]
 
 
 [tool.setuptools]
@@ -76,3 +76,14 @@ exclude = ["tests"]
 [tool.isort]
 profile = "black"
 skip_gitignore = true
+
+[tool.coverage.paths]
+source = ["flask_rest_jsonapi_next"]
+
+[tool.coverage.run]
+branch = true
+source = ["flask_rest_jsonapi_next"]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
