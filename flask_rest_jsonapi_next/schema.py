@@ -147,7 +147,7 @@ def get_schema_from_type(resource_type):
         except Exception:
             pass
 
-    raise Exception("Couldn't find schema for type: {}".format(resource_type))
+    raise ValueError("Couldn't find schema for type: {}".format(resource_type))
 
 
 def get_schema_field(schema, field):
@@ -162,7 +162,7 @@ def get_schema_field(schema, field):
         if value == field:
             return key
 
-    raise Exception("Couldn't find schema field from {}".format(field))
+    raise ValueError("Couldn't find schema field from {}".format(field))
 
 # fmt: on
 
