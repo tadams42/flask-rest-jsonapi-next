@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.34.1 (fork-0.34.1) (2022-08-26)
+
+- request `&fields[some_jsonapi_type]=...` should raise `ValueError` instead of generic
+  `Exception` when `some_jsonapi_type` is not correct / known
+
 ## 0.34.0 (fork-0.34.0) (2022-08-19)
 
 - feat: allow injecting page parameters into `Querystring` instances
