@@ -40,12 +40,18 @@ def _error_response(data: Union[List[dict], dict], request_id: str) -> flask.Res
     body = {"jsonapi": {"version": "1.0"}}
 
     if isinstance(data, list):
-        for _ in data:
-            _["request_id"] = request_id
+        if request_id:
+            for _ in data:
+                _["request_id"] = request_id
         body["errors"] = [_normalize_single_error(**_) for _ in data]
     else:
-        data["request_id"] = request_id
+        if request_id:
+            data["request_id"] = request_id
         body["errors"] = [_normalize_single_error(**data)]
+
+    if not request_id:
+        for idx, _ in enumerate(body["errors"]):
+            _["id"] = str(idx)
 
     status_code = next(iter(body["errors"]), dict()).get("status", requests.codes["✗"])
 
@@ -58,17 +64,19 @@ def _normalize_single_error(
     title: str,
     detail: Union[List[str], str],
     http_status: Union[str, int],
-    request_id: str,
+    request_id: Optional[str] = None,
     code: Optional[Union[str, int]] = None,
     meta: Optional[dict] = None,
     source: Optional[str] = None,
 ) -> dict:
     error = {
-        "id": request_id,
         "status": str(http_status or requests.codes["✗"]),
         "title": str(title),
         "detail": [str(_) for _ in detail] if isinstance(detail, list) else str(detail),
     }
+
+    if request_id:
+        error["id"] = request_id
 
     if meta:
         error["meta"] = meta
