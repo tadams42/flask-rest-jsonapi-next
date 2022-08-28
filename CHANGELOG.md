@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.34.1 (fork-0.34.2) (2022-08-28)
+
+- fix: don't force usage of `Flask.g.request_id` if it is not there
+  - this shows in error responses as potentially confusing message "X-Request-ID Unknown"
+
 ## 0.34.1 (fork-0.34.1) (2022-08-26)
 
 - request `&fields[some_jsonapi_type]=...` should raise `ValueError` instead of generic
