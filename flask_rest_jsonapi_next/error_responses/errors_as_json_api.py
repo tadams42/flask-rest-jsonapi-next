@@ -80,5 +80,5 @@ class ErrorsAsJsonApi:
         )
         return error_response_from(
             error,
-            getattr(getattr(flask, "g", None), "request_id", "X-Request-ID Unknown"),
+            getattr(getattr(flask, "g", None), "request_id", ""),
         )
