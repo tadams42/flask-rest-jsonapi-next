@@ -1,6 +1,12 @@
 # CHANGELOG
 
-## 0.34.1 (fork-0.34.2) (2022-08-28)
+## 0.34.3 (fork-0.34.3) (2023-02-03)
+
+- feat: reduced amount of logged tracebacks in `ErrorsAsJsonApi`.
+  Tracebacks for HTTP statuses `401`, `403` and `405` are logged as `DEBUG`. Other
+  errors are still logged as `ERROR`.
+
+## 0.34.2 (fork-0.34.2) (2022-08-28)
 
 - fix: don't force usage of `Flask.g.request_id` if it is not there
   - this shows in error responses as potentially confusing message "X-Request-ID Unknown"
