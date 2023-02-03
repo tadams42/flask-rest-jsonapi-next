@@ -24,7 +24,7 @@ dependencies = [
 	"Flask >= 2.2.0",
 	"marshmallow >= 3",
 	"marshmallow_jsonapi",
-	"sqlalchemy",
+	"sqlalchemy < 2.0.0",
 	"requests",
 ]
 keywords = [
