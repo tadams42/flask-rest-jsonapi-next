@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.34.4 (fork-0.34.3) (2023-02-03)
+
+- fix: order of exception converters evaluation is sometimes important: better API error
+  responses for uncaught SQLAlchemy exceptions
+
 ## 0.34.3 (fork-0.34.3) (2023-02-03)
 
 - feat: reduced amount of logged tracebacks in `ErrorsAsJsonApi`.
