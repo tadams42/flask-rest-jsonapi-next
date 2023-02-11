@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flask-rest-jsonapi-next"
-version = "0.34.3"
+version = "0.34.4"
 description = "Flask extension to create REST web api according to JSONAPI 1.0 specification with Flask, Marshmallow and data provider of your choice (SQLAlchemy, MongoDB, ...)"
 readme = "README.md"
 classifiers = [
@@ -24,7 +24,7 @@ dependencies = [
 	"Flask >= 2.2.0",
 	"marshmallow >= 3",
 	"marshmallow_jsonapi",
-	"sqlalchemy",
+	"sqlalchemy < 2.0.0",
 	"requests",
 ]
 keywords = [
