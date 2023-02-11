@@ -209,6 +209,9 @@ class InvalidRequestErrorConverter(ExceptionConverter):
         raise ValueError()
 
 
+InvalidRequestErrorConverter.register()
+
+
 class DataErrorConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
@@ -216,9 +219,21 @@ class DataErrorConverter(ExceptionConverter):
             raise ValueError()
 
         if hasattr(exc, "orig"):
+            orig = exc.orig
+            detail = None
+
+            if hasattr(orig, "diag"):
+                diag = orig.diag
+                detail = getattr(diag, "message_primary", None)
+
+            detail = (
+                detail
+                or f"Datastore error not caught by validation: {';'.join(_.strip() for _ in exc.orig.args)}"
+            )
+
             return dict(
                 title="DataError",
-                detail=f"Datastore error not caught by validation: {';'.join(_.strip() for _ in exc.orig.args)}",
+                detail=detail,
                 http_status=requests.codes["unprocessable"],
                 source={"pointer": "body"},
             )
@@ -226,7 +241,10 @@ class DataErrorConverter(ExceptionConverter):
         raise ValueError()
 
 
-class SQLAlchemyErrorConverter(ExceptionConverter):
+DataErrorConverter.register()
+
+
+class GenericSQLAlchemyErrorConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
         if not isinstance(exc, sqlalchemy.exc.SQLAlchemyError):
