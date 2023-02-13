@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.34.4 (fork-0.34.3) (2023-02-03)
+## 0.34.5 (fork-0.34.5) (2023-02-13)
+
+- fix: filtering operator `between` was not correctly implemented for SQLAlchemy
+  data layer
+
+## 0.34.4 (fork-0.34.4) (2023-02-03)
 
 - fix: order of exception converters evaluation is sometimes important: better API error
   responses for uncaught SQLAlchemy exceptions
