@@ -45,6 +45,9 @@ class Node(object):
         if 'or' not in self.filter_ and 'and' not in self.filter_ and 'not' not in self.filter_:
             value = self.value
 
+            if self.operator == "between":
+                return self.column.between(*value)
+
             if isinstance(value, dict):
                 value = Node(self.related_model, value, self.resource, self.related_schema).resolve()
 
