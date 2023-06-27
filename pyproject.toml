@@ -59,7 +59,7 @@ dev = [
 	"pytest",
 	"sphinx-copybutton",
 	"sphinx",
-	"twine",
+	"psycopg2-binary",
 ]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = ["check-manifest", "pytest", "coverage"]
