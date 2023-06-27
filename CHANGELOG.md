@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.34.6 (fork-0.34.6) (2023-06-27)
+
+- fix: filtering operator `between` was not correctly implemented for SQLAlchemy
+  data layer
+
 ## 0.34.5 (fork-0.34.5) (2023-02-13)
 
 - fix: filtering operator `between` was not correctly implemented for SQLAlchemy
