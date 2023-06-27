@@ -45,7 +45,3 @@ class MarshmallowJsonapiIncorrectTypeErrorConverter(ExceptionConverter):
             source={"pointer": exc.pointer},
             http_status=requests.codes["conflict"],
         )
-
-
-MarshmallowJsonapiIncorrectTypeErrorConverter.register()
-MarshmallowValidationErrorConverter.register()

@@ -31,9 +31,6 @@ class ArgumentErrorConverter(ExceptionConverter):
         )
 
 
-ArgumentErrorConverter.register()
-
-
 class NoResultFoundConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
@@ -46,9 +43,6 @@ class NoResultFoundConverter(ExceptionConverter):
             http_status=requests.codes["not_found"],
             meta={"sql_exception": str(exc)} if flask.current_app.debug else None,
         )
-
-
-NoResultFoundConverter.register()
 
 
 class MultipleResultsFoundConverter(ExceptionConverter):
@@ -65,27 +59,23 @@ class MultipleResultsFoundConverter(ExceptionConverter):
         )
 
 
-MultipleResultsFoundConverter.register()
-
-
-class UniqueViolationConverter(ExceptionConverter):
-    @classmethod
-    def convert(cls, exc):
-        if not isinstance(exc, psycopg2.errors.UniqueViolation):
-            raise ValueError()
-
-        return dict(
-            title="SQLUniqueViolation",
-            detail=(
-                "Unique constraint violated! "
-                + (getattr(getattr(exc, "diag", None), "message_detail", ""))
-            ),
-            http_status=requests.codes["conflict"],
-            meta={"psql_exception": str(exc)} if flask.current_app.debug else None,
-        )
-
-
 if _HAS_PSYCOPG2:
+    class UniqueViolationConverter(ExceptionConverter):
+        @classmethod
+        def convert(cls, exc):
+            if not isinstance(exc, psycopg2.errors.UniqueViolation):
+                raise ValueError()
+
+            return dict(
+                title="SQLUniqueViolation",
+                detail=(
+                    "Unique constraint violated! "
+                    + (getattr(getattr(exc, "diag", None), "message_detail", ""))
+                ),
+                http_status=requests.codes["conflict"],
+                meta={"psql_exception": str(exc)} if flask.current_app.debug else None,
+            )
+
 
     class CheckViolationConverter(ExceptionConverter):
         @classmethod
@@ -105,7 +95,6 @@ if _HAS_PSYCOPG2:
                 else None,
             )
 
-    CheckViolationConverter.register()
 
     class ForeignKeyViolationConverter(ExceptionConverter):
         @classmethod
@@ -129,7 +118,6 @@ if _HAS_PSYCOPG2:
                 else None,
             )
 
-    CheckViolationConverter.register()
 
     class NotNullViolationConverter(ExceptionConverter):
         @classmethod
@@ -158,7 +146,6 @@ if _HAS_PSYCOPG2:
                 else None,
             )
 
-    NotNullViolationConverter.register()
 
     class IntegrityErrorConverter(ExceptionConverter):
         @classmethod
@@ -189,8 +176,6 @@ if _HAS_PSYCOPG2:
 
             return retv
 
-    IntegrityErrorConverter.register()
-
 
 class InvalidRequestErrorConverter(ExceptionConverter):
     @classmethod
@@ -207,9 +192,6 @@ class InvalidRequestErrorConverter(ExceptionConverter):
             )
 
         raise ValueError()
-
-
-InvalidRequestErrorConverter.register()
 
 
 class DataErrorConverter(ExceptionConverter):
@@ -241,7 +223,25 @@ class DataErrorConverter(ExceptionConverter):
         raise ValueError()
 
 
-DataErrorConverter.register()
+class SQLStatementErrorConverter(ExceptionConverter):
+    @classmethod
+    def convert(cls, exc):
+        if not isinstance(exc, sqlalchemy.exc.StatementError):
+            raise ValueError()
+
+        detail = ""
+
+        if hasattr(exc, "orig"):
+            detail = ";".join(exc.orig.args)
+        else:
+            detail = ";".join(exc.args)
+
+        return dict(
+            title="SQLStatementError",
+            detail=detail,
+            http_status=requests.codes["unprocessable"],
+            source={"pointer": "filter"},
+        )
 
 
 class GenericSQLAlchemyErrorConverter(ExceptionConverter):

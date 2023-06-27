@@ -10,6 +10,3 @@ class WerkzeugHttpErrorConverter(ExceptionConverter):
             raise ValueError()
 
         return dict(title=exc.name, detail=exc.description, http_status=exc.code)
-
-
-WerkzeugHttpErrorConverter.register()

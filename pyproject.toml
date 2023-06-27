@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flask-rest-jsonapi-next"
-version = "0.34.5"
+version = "0.34.6"
 description = "Flask extension to create REST web api according to JSONAPI 1.0 specification with Flask, Marshmallow and data provider of your choice (SQLAlchemy, MongoDB, ...)"
 readme = "README.md"
 classifiers = [
@@ -59,7 +59,7 @@ dev = [
 	"pytest",
 	"sphinx-copybutton",
 	"sphinx",
-	"twine",
+	"psycopg2-binary",
 ]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = ["check-manifest", "pytest", "coverage"]

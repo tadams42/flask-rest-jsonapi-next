@@ -2,41 +2,6 @@ import abc
 from typing import List, Union
 
 import flask
-import sqlalchemy
-
-CONVERTERS_REGISTRY = set()
-
-
-class ConvertersRegistry:
-    @classmethod
-    def register(cls, klass):
-        CONVERTERS_REGISTRY.add(klass)
-
-    @classmethod
-    def get_converted_data(cls, err):
-        from .sqlalchemy import GenericSQLAlchemyErrorConverter
-
-        data = None
-
-        for klass in CONVERTERS_REGISTRY:
-            try:
-                data = klass.convert(err)
-            except ValueError:
-                pass
-
-            if data:
-                break
-
-        if not data:
-            try:
-                data = GenericSQLAlchemyErrorConverter.convert(err)
-            except ValueError:
-                pass
-
-        if not data:
-            data = GenericErrorConverter.convert(err)
-
-        return data
 
 
 class ExceptionConverter(abc.ABC):
@@ -46,6 +11,8 @@ class ExceptionConverter(abc.ABC):
 
     @classmethod
     def register(cls):
+        from .registry import ConvertersRegistry
+
         ConvertersRegistry.register(cls)
 
 
@@ -66,7 +33,7 @@ class GenericErrorConverter(ExceptionConverter):
                 detail = """
                     ************************** Congratulations!!!! **************************
                     You have just discovered new, unknown species of backend bug! Play
-                    it nice and report the issue (together with complete contenets of
+                    it nice and report the issue (together with complete contents of
                     this error response) to backend maintainers."
                 """
 

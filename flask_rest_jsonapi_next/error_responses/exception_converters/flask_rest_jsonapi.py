@@ -17,6 +17,3 @@ class FlaskRestJsonApiExceptionConverter(ExceptionConverter):
             retv["meta"] = exc.meta
 
         return retv
-
-
-FlaskRestJsonApiExceptionConverter.register()
