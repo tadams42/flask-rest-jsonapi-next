@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.34.7 (fork-0.34.7) (2023-06-28)
+
+- fix: missing import
+
 ## 0.34.6 (fork-0.34.6) (2023-06-27)
 
 - fix: filtering operator `between` was not correctly implemented for SQLAlchemy
