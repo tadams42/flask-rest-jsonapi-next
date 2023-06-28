@@ -46,6 +46,7 @@ class ConvertersRegistry:
     @classmethod
     def get_converted_data(cls, err):
         from .sqlalchemy import GenericSQLAlchemyErrorConverter
+        from .base import GenericErrorConverter
 
         data = None
 
