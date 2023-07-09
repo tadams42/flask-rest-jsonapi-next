@@ -1,5 +1,5 @@
 """This module contains the main class of the Api to initialize the Api, plug default decorators for each resources
-methods, speficy which blueprint to use, define the Api routes and plug additional oauth manager and permission manager
+methods, specify which blueprint to use, define the Api routes and plug additional oauth manager and permission manager
 """
 
 import inspect

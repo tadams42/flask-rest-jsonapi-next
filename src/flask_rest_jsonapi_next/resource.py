@@ -7,8 +7,6 @@ import flask
 from flask import make_response, request, url_for
 from flask.views import MethodView
 from flask.wrappers import Response as FlaskResponse
-from marshmallow import ValidationError
-from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from marshmallow_jsonapi.fields import BaseRelationship
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.wrappers import Response
@@ -102,11 +100,11 @@ class Resource(MethodView):
             data.status_code = status_code
             return data
         elif isinstance(data, str):
-            json_reponse = data
+            json_response = data
         else:
-            json_reponse = flask.json.dumps(data)
+            json_response = flask.json.dumps(data)
 
-        return make_response(json_reponse, status_code, headers)
+        return make_response(json_response, status_code, headers)
 
 
 class ResourceList(Resource):

@@ -2105,9 +2105,9 @@ def test_relationship_containing_hyphens(
     person,
 ):
     """
-    This is a bit of a hack. Basically, since we can no longer have two attributes that read from the same key
-    in Marshmallow 3, we have to create a new Schema and Resource here that name their relationship "computers_owned"
-    in order to test hyphenation
+    This is a bit of a hack. Basically, since we can no longer have two attributes that
+    read from the same key in Marshmallow 3, we have to create a new Schema and Resource
+    here that name their relationship "computers_owned" in order to test hyphenation
     """
 
     class PersonOwnedSchema(person_schema):

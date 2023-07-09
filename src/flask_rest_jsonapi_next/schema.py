@@ -1,7 +1,6 @@
 """Helpers to deal with marshmallow schemas"""
 
-import copy
-from typing import Optional, Set, Tuple
+from typing import Optional, Tuple
 
 from marshmallow import class_registry
 from marshmallow.base import SchemaABC
@@ -191,7 +190,7 @@ def _compute_sparse(
         schema = FooSchema()
         schema.only = ("field1", "field2", ...)
 
-    marsmallow.Schema.only should really, really, really be private attribute or
+    marshmallow.Schema.only should really, really, really be private attribute or
     read-only property: setting it's value after instance had been __init__-ialized
     has no effect.
     """
