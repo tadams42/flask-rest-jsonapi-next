@@ -23,8 +23,6 @@ pip install flask-rest-jsonapi-next
 ## A minimal API
 
 ```py
-# -*- coding: utf-8 -*-
-
 from flask import Flask
 from flask_rest_jsonapi_next import Api, ResourceDetail, ResourceList
 from flask_sqlalchemy import SQLAlchemy
