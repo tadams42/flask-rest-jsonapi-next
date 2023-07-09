@@ -6,7 +6,7 @@ from copy import copy
 from math import ceil
 
 from flask import current_app
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 
 def add_pagination_links(data, object_count, querystring, base_url):

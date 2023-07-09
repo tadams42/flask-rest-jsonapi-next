@@ -5,7 +5,7 @@ from marshmallow import Schema as MarshmallowSchema
 from marshmallow import ValidationError
 from marshmallow_jsonapi import fields
 from marshmallow_jsonapi.flask import Relationship, Schema
-from six.moves.urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, urlencode
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker

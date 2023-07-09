@@ -19,7 +19,6 @@ classifiers = [
 	"License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-	"six",
 	"Flask >= 2.2.0",
 	"marshmallow >= 3",
 	"marshmallow_jsonapi",
