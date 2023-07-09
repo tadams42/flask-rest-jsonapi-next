@@ -87,3 +87,15 @@ source = ["src"]
 [tool.coverage.report]
 show_missing = true
 precision = 2
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+
+python_classes = ["Describe*", "When*", "describe_*", "when_*"]
+python_functions = ["it_*", "test_*", "then_*", "when_*"]
+python_files = ["test_*", "*_spec.py", "*_test.py"]
+spec_header_format = "{test_case}"
+
+[tool.pytest-watcher]
+delay = 0.5
