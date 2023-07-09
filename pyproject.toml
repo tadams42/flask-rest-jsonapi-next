@@ -2,7 +2,6 @@
 # setuptools v64 was first to support `pip install -e` for packages defined using
 # pyproject.toml (older versions support this, but only for setup.py projects)
 requires = ["setuptools>=64", "wheel"]
-build-backend = "setuptools.build_meta"
 
 [project]
 name = "flask-rest-jsonapi-next"

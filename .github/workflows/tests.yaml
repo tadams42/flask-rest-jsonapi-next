@@ -1,4 +1,5 @@
-name: tests
+name: Run tests
+
 
 on:
   push:
@@ -9,8 +10,8 @@ on:
 
 
 jobs:
-
   run_tests:
+
     strategy:
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
@@ -20,16 +21,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - name: "📦 set up 🐍 ${{ matrix.python-version }}"
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           cache-dependency-path: pyproject.toml
+
       - name: "📦 ensure latest 🐍 pip"
         run: python -m pip install --upgrade pip
+
       - name: "📦 ensure 🐍 wheel"
         run: pip install wheel
+
       - name: "📦 install flask-rest-jsonoapi-next"
         run: pip install .[tests]
 
@@ -43,12 +48,21 @@ jobs:
       - name: "run tests with coverage 🔹 🐍 3.9"
         if: ${{ matrix.python-version == '3.9'}}
         run: coverage run -m pytest
+
+      - name: "coverage report 🔹 🐍 3.9"
+        if: ${{ matrix.python-version == '3.9'}}
+        run: coverage report
+
       - name: "generate coverage xml 🔹 🐍 3.9"
         if: ${{ matrix.python-version == '3.9'}}
-        run: coverage xml
+        run: coverage xml -i
+
       - name: "generate coverage report 🔹 🐍 3.9"
         if: ${{ matrix.python-version == '3.9'}}
         run: coverage report
+
       - name: "upload coverage to codecov.io 🔹 🐍 3.9"
         if: ${{ matrix.python-version == '3.9'}}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v3.1.4
+        with:
+          file: ./coverage.xml

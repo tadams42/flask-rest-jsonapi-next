@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.4.0 (unreleased)
+
 ## 0.34.7 (fork-0.34.7) (2023-06-28)
 
 - fix: missing import
