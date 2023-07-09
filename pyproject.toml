@@ -69,19 +69,21 @@ zip-safe = false
 platforms = ["any"]
 include-package-data = true
 
+
 [tool.setuptools.packages.find]
+where = ["src"]
 exclude = ["tests"]
+
 
 [tool.isort]
 profile = "black"
 skip_gitignore = true
 
-[tool.coverage.paths]
-source = ["flask_rest_jsonapi_next"]
 
 [tool.coverage.run]
 branch = true
-source = ["flask_rest_jsonapi_next"]
+source = ["src"]
+
 
 [tool.coverage.report]
 show_missing = true
