@@ -3,7 +3,7 @@ import werkzeug
 from .base import ExceptionConverter
 
 
-class WerkzeugHttpErrorConverter(ExceptionConverter):
+class _WerkzeugHttpErrorConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
         if not isinstance(exc, werkzeug.exceptions.HTTPException):

@@ -3,20 +3,84 @@ from typing import List, Union
 
 import flask
 
+_CONVERTERS_REGISTRY = []
+_REGISTRY_INTERNALS_ORDER = [
+    "_FlaskRestJsonApiExceptionConverter",
+    "_MarshmallowJsonapiIncorrectTypeErrorConverter",
+    "_MarshmallowValidationErrorConverter",
+    "_IntegrityErrorConverter",
+    "_ArgumentErrorConverter",
+    "_DataErrorConverter",
+    "_InvalidRequestErrorConverter",
+    "_MultipleResultsFoundConverter",
+    "_NoResultFoundConverter",
+    "_SQLProgrammingErrorConverter",
+    "_SQLStatementErrorConverter",
+    "_WerkzeugHttpErrorConverter",
+]
+
+
+class ConvertersRegistry:
+    @classmethod
+    def register(cls, klass):
+        if klass and klass not in _CONVERTERS_REGISTRY:
+            _CONVERTERS_REGISTRY.append(klass)
+
+        cls._sort()
+
+    @classmethod
+    def _sort(cls):
+        def _key(klass):
+            if klass.__name__ in _REGISTRY_INTERNALS_ORDER:
+                return _REGISTRY_INTERNALS_ORDER.index(klass.__name__)
+
+            if klass.__name__ == "_GenericSQLAlchemyErrorConverter":
+                return len(_REGISTRY_INTERNALS_ORDER) + 10
+
+            if klass.__name__ == "_GenericErrorConverter":
+                return len(_REGISTRY_INTERNALS_ORDER) + 20
+
+            return len(_REGISTRY_INTERNALS_ORDER) + 1
+
+        global _CONVERTERS_REGISTRY
+
+        _CONVERTERS_REGISTRY = list(sorted(_CONVERTERS_REGISTRY, key=_key))
+
+
+def convert(error: Union[int, Exception]) -> Union[List[dict], dict]:
+    from .sqlalchemy import _GenericSQLAlchemyErrorConverter
+
+    data = None
+
+    for klass in _CONVERTERS_REGISTRY:
+        try:
+            data = klass.convert(error)
+        except ValueError:
+            pass
+
+        if data:
+            break
+
+    return data
+
 
 class ExceptionConverter(abc.ABC):
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(*args, **kwargs)
+        ConvertersRegistry.register(cls)
+
     @abc.abstractclassmethod
     def convert(cls, exc: Exception) -> Union[List[dict], dict]:
         raise NotImplementedError()
 
     @classmethod
     def register(cls):
-        from .registry import ConvertersRegistry
+        # exists only for backward compatibility reasons
+        # no-op because __init_subclass__ does the work
+        pass
 
-        ConvertersRegistry.register(cls)
 
-
-class GenericErrorConverter(ExceptionConverter):
+class _GenericErrorConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
         title = type(exc).__name__

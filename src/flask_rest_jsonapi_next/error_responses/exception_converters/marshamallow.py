@@ -5,7 +5,7 @@ import requests
 from .base import ExceptionConverter
 
 
-class MarshmallowValidationErrorConverter(ExceptionConverter):
+class _MarshmallowValidationErrorConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
         if not isinstance(exc, marshmallow.ValidationError):
@@ -33,7 +33,7 @@ class MarshmallowValidationErrorConverter(ExceptionConverter):
         return retv
 
 
-class MarshmallowJsonapiIncorrectTypeErrorConverter(ExceptionConverter):
+class _MarshmallowJsonapiIncorrectTypeErrorConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
         if not isinstance(exc, marshmallow_jsonapi.exceptions.IncorrectTypeError):

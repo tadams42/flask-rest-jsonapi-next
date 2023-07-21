@@ -21,8 +21,8 @@ classifiers = [
 dependencies = [
 	"Flask >= 2.2.0",
 	"marshmallow >= 3",
-	"marshmallow_jsonapi",
-	"sqlalchemy < 2.0.0",
+	"marshmallow-jsonapi@git+https://github.com/tadams42/marshmallow-jsonapi.git@dev",
+	"sqlalchemy",
 	"requests",
 ]
 keywords = [
@@ -46,19 +46,7 @@ Source = "https://github.com/tadams42/flask-rest-jsonapi-next"
 Documentation = "https://flask-rest-jsonapi-next.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
-dev = [
-	"black",
-	"bump2version",
-	"check-manifest",
-	"furo",
-	"ipython",
-	"isort",
-	"myst-parser",
-	"pytest",
-	"sphinx-copybutton",
-	"sphinx",
-	"psycopg2-binary",
-]
+dev = ["black", "bump2version", "ipython", "isort", "psycopg[binary]", "rich"]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = ["check-manifest", "pytest", "coverage"]
 
@@ -95,7 +83,6 @@ testpaths = ["tests"]
 python_classes = ["Describe*", "When*", "describe_*", "when_*"]
 python_functions = ["it_*", "test_*", "then_*", "when_*"]
 python_files = ["test_*", "*_spec.py", "*_test.py"]
-spec_header_format = "{test_case}"
 
 [tool.pytest-watcher]
 delay = 0.5

@@ -2,7 +2,7 @@ from ...exceptions import JsonApiException
 from .base import ExceptionConverter
 
 
-class FlaskRestJsonApiExceptionConverter(ExceptionConverter):
+class _FlaskRestJsonApiExceptionConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):
         if not isinstance(exc, JsonApiException):
