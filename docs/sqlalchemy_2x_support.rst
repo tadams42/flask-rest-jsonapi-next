@@ -27,20 +27,20 @@ Then in SQLAlchemy 1.x, following expressions both worked:
 
 .. code-block:: python
 
-	import sqlalchemy as sa
-	from sqlalchemy import orm
+    import sqlalchemy as sa
+    from sqlalchemy import orm
 
-	query = sa.select(Computer).options(orm.joinedload("person"))
-	query = sa.select(Computer).options(orm.joinedload(Computer.person))
+    query = sa.select(Computer).options(orm.joinedload("person"))
+    query = sa.select(Computer).options(orm.joinedload(Computer.person))
 
 In SQLAlchemy 2.x, only this works:
 
 .. code-block:: python
 
-	import sqlalchemy as sa
-	from sqlalchemy import orm
+    import sqlalchemy as sa
+    from sqlalchemy import orm
 
-	query = sa.select(Computer).options(orm.joinedload(Computer.person))
+    query = sa.select(Computer).options(orm.joinedload(Computer.person))
 
 ``flask-rest-jsonapi-next`` data layer is using ``orm.joinedload()`` to eagerly load
 objects for requests with ``?include`` URL parameter and thus tries to prevent N + 1
@@ -58,7 +58,7 @@ In short assuming we have following schema in our code:
     class ComputerSchema(Schema):
         class Meta:
             type_ = 'computer'
-			# ...
+            # ...
 
         id = fields.Integer(as_string=True, dump_only=True)
         person = Relationship(...)
@@ -67,7 +67,7 @@ And we make following request:
 
 .. code-block::
 
-	GET /api/computers?include=person
+    GET /api/computers?include=person
 
 Everything except eager loading will still work and we will get expected response. But,
 in contrary to app that is using SQLAlchemy 1.x data layer, above request will generate
@@ -91,10 +91,10 @@ attribute like this:
     class ComputerSchema(Schema):
         class Meta:
             type_ = 'computer'
-			# ...
+            # ...
 
-			# This is required for SQLAlchemy 2.x eager loading
-			model = Computer
+            # Following is required for SQLAlchemy 2.x eager loading
+            model = Computer
 
         id = fields.Integer(as_string=True, dump_only=True)
         person = Relationship(...)
