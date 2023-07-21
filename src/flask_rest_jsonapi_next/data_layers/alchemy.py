@@ -1,11 +1,15 @@
 """This module is a CRUD interface between resource managers and the sqlalchemy ORM"""
+import warnings
 
 import marshmallow
+import sqlalchemy
 from flask import current_app
 from marshmallow import class_registry
 from marshmallow.base import SchemaABC
+from packaging.version import Version
+from sqlalchemy import orm
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import ColumnProperty, RelationshipProperty, joinedload
+from sqlalchemy.orm import ColumnProperty, RelationshipProperty
 from sqlalchemy.orm.attributes import QueryableAttribute
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.orm.exc import NoResultFound
@@ -28,6 +32,12 @@ from ..schema import (
 )
 from .base import BaseDataLayer
 from .filtering.alchemy import create_filters
+
+_IS_SQLALCHEMY_1x = Version(sqlalchemy.__version__) < Version("2.0.0")
+
+
+class FlaskRestJsonApiNextWarning(UserWarning):
+    pass
 
 
 class SqlalchemyDataLayer(BaseDataLayer):
@@ -672,6 +682,84 @@ class SqlalchemyDataLayer(BaseDataLayer):
         :param QueryStringManager qs: a querystring manager to retrieve information from url
         :return Query: the query with includes eagerloaded
         """
+        if _IS_SQLALCHEMY_1x:
+            return self._legacy_eagerload_includes(query, qs)
+
+        for include in qs.include:
+            joinload_object = None
+
+            if "." in include:
+                current_schema = self.resource.schema
+                for field_name in include.split("."):
+                    joinload_object = self._field_eager_loader(
+                        current_schema, field_name, joinload_object
+                    )
+
+                    related_schema_cls = get_related_schema(current_schema, field_name)
+                    if isinstance(related_schema_cls, SchemaABC):
+                        related_schema_cls = related_schema_cls.__class__
+                    else:
+                        related_schema_cls = class_registry.get_class(
+                            related_schema_cls
+                        )
+                    current_schema = related_schema_cls
+            else:
+                joinload_object = self._field_eager_loader(
+                    self.resource.schema, include, None
+                )
+
+            if joinload_object:
+                query = query.options(joinload_object)
+
+        return query
+
+    def _field_eager_loader(self, schema, field_name, previous_loader=None):
+        try:
+            model_attribute_name = get_model_field(schema, field_name)
+        except Exception as e:
+            raise InvalidInclude(field_name)
+
+        loader = previous_loader
+        schema_meta = getattr(schema, "Meta", None)
+        model = getattr(schema_meta, "model", None)
+        model_attribute = None
+        if model:
+            try:
+                model_attribute = getattr(model, model_attribute_name)
+            except Exception as e:
+                raise InvalidInclude(model_attribute_name)
+        else:
+            warnings.warn(
+                FlaskRestJsonApiNextWarning(
+                    "When using SQLAlchemy 2.x, resource schema classes must have "
+                    "'SchemaClass.Meta.model' attribute. Without this, eager loading "
+                    "of included objects can't work and is disabled. Without eager "
+                    "loading, app may run into N + 1 query problem which will affect "
+                    f"performance. Warning for: {schema}.{field_name}."
+                )
+            )
+            return previous_loader
+
+        # schema_field = schema().fields[field_name]
+        # if hasattr(schema_field, "eager_loader_for"):
+        #     return schema_field.eager_loader_for(previous_loader)
+        # elif model_attribute:
+
+        if model_attribute:
+            if previous_loader is None:
+                loader = orm.joinedload(model_attribute)
+            else:
+                loader = previous_loader.joinedload(model_attribute)
+
+        return loader
+
+    def _legacy_eagerload_includes(self, query, qs):
+        # Broken on SQLAlchemy 2.x
+        # https://docs.sqlalchemy.org/en/20/changelog/changelog_20.html#change-c4886b74af98b72892877aefa7d6a6a4
+        #
+        # > Loader options no longer accept strings for attribute names. The
+        # > long-documented approach of using Class.attrname for loader option targets is
+        # > now standard.
         for include in qs.include:
             joinload_object = None
 
@@ -683,10 +771,13 @@ class SqlalchemyDataLayer(BaseDataLayer):
                     except Exception as e:
                         raise InvalidInclude(str(e))
 
-                    if joinload_object is None:
-                        joinload_object = joinedload(field)
-                    else:
-                        joinload_object = joinload_object.joinedload(field)
+                    try:
+                        if joinload_object is None:
+                            joinload_object = orm.joinedload(field)
+                        else:
+                            joinload_object = joinload_object.joinedload(field)
+                    except sqlalchemy.exc.ArgumentError as e:
+                        raise InvalidInclude(str(e))
 
                     related_schema_cls = get_related_schema(current_schema, obj)
 
@@ -704,7 +795,10 @@ class SqlalchemyDataLayer(BaseDataLayer):
                 except Exception as e:
                     raise InvalidInclude(str(e))
 
-                joinload_object = joinedload(field)
+                try:
+                    joinload_object = orm.joinedload(field)
+                except sqlalchemy.exc.ArgumentError as e:
+                    raise InvalidInclude(str(e))
 
             query = query.options(joinload_object)
 

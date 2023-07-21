@@ -21,9 +21,10 @@ classifiers = [
 dependencies = [
 	"Flask >= 2.2.0",
 	"marshmallow >= 3",
-	"marshmallow-jsonapi@git+https://github.com/tadams42/marshmallow-jsonapi.git@dev",
+	"marshmallow-jsonapi",
 	"sqlalchemy",
 	"requests",
+	"packaging",
 ]
 keywords = [
 	"web",
