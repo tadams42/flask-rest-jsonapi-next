@@ -1,4 +1,8 @@
 import pytest
+from flask import Blueprint, Flask
+
+from flask_rest_jsonapi_next import Api
+
 from .resources import (
     ComputerDetail,
     ComputerList,
@@ -13,10 +17,6 @@ from .resources import (
     StringJsonAttributePersonDetail,
     StringJsonAttributePersonList,
 )
-
-from flask import Blueprint, Flask
-
-from flask_rest_jsonapi_next import Api
 
 
 @pytest.fixture

@@ -46,7 +46,15 @@ Source = "https://github.com/tadams42/flask-rest-jsonapi-next"
 Documentation = "https://flask-rest-jsonapi-next.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
-dev = ["black", "bump2version", "ipython", "isort", "psycopg[binary]", "rich"]
+dev = [
+	"black",
+	"bump2version",
+	"ipython",
+	"isort",
+	"psycopg[binary]",
+	"rich",
+	"pre-commit",
+]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = ["check-manifest", "pytest", "coverage"]
 

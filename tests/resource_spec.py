@@ -2,15 +2,13 @@ import pytest
 from marshmallow import ValidationError
 
 import flask_rest_jsonapi_next.decorators
-
 from flask_rest_jsonapi_next import (
     Api,
+    JsonApiException,
     ResourceDetail,
     ResourceList,
     SqlalchemyDataLayer,
 )
-
-from flask_rest_jsonapi_next import Api, JsonApiException
 
 
 def test_json_api_exception():

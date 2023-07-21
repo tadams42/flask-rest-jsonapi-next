@@ -48,10 +48,10 @@ class Db:
         return self._session
 
     def _upgrade(self):
-        from .person import Person
-        from .person_tag import PersonTag
         from .computer import Computer
+        from .person import Person
         from .person_single_tag import PersonSingleTag
+        from .person_tag import PersonTag
         from .string_json_attribute_person import StringJsonAttributePerson
 
         PersonTag.metadata.create_all(self.engine)

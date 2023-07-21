@@ -1,6 +1,6 @@
 from marshmallow import Schema as MarshmallowSchema
-from marshmallow_jsonapi.flask import Schema
 from marshmallow_jsonapi import fields
+from marshmallow_jsonapi.flask import Schema
 from sqlalchemy import Column, DateTime, Integer, String
 
 from .db import Base, MagicJSON

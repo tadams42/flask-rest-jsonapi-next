@@ -4,9 +4,9 @@ from __future__ import division
 
 from copy import copy
 from math import ceil
+from urllib.parse import urlencode
 
 from flask import current_app
-from urllib.parse import urlencode
 
 
 def add_pagination_links(data, object_count, querystring, base_url):
