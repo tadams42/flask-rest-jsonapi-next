@@ -91,3 +91,5 @@ ENV/
 .venv
 .vscode
 *.code-workspace
+
+/scratchpad

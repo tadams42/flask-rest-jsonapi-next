@@ -46,6 +46,7 @@ flask-rest-jsonapi-next with Flask.
    permission
    oauth
    configuration
+   sqlalchemy_2x_support
 
 API Reference
 -------------

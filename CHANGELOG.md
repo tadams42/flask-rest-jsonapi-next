@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.40.0 (2023-07-21)
+
+- removed restriction on SQLAlchemy version, library now works with SQLAlchemy 2.x
+  - working with SQLAlchemy 2.x layer requires some changes in client code, otherwise
+    there might be performance penalties
+  - added docs section on SQLAlchemy 2.x usage
+- tested with psycopg 3
+
 ## 0.34.7 (fork-0.34.7) (2023-06-28)
 
 - fix: missing import

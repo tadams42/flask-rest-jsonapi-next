@@ -2,11 +2,10 @@
 # setuptools v64 was first to support `pip install -e` for packages defined using
 # pyproject.toml (older versions support this, but only for setup.py projects)
 requires = ["setuptools>=64", "wheel"]
-build-backend = "setuptools.build_meta"
 
 [project]
 name = "flask-rest-jsonapi-next"
-version = "0.34.7"
+version = "0.40.0"
 description = "Flask extension to create REST web api according to JSONAPI 1.0 specification with Flask, Marshmallow and data provider of your choice (SQLAlchemy, MongoDB, ...)"
 readme = "README.md"
 classifiers = [
@@ -20,12 +19,12 @@ classifiers = [
 	"License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-	"six",
 	"Flask >= 2.2.0",
 	"marshmallow >= 3",
-	"marshmallow_jsonapi",
-	"sqlalchemy < 2.0.0",
+	"marshmallow-jsonapi",
+	"sqlalchemy",
 	"requests",
+	"packaging",
 ]
 keywords = [
 	"web",
@@ -51,15 +50,11 @@ Documentation = "https://flask-rest-jsonapi-next.readthedocs.io/en/latest/"
 dev = [
 	"black",
 	"bump2version",
-	"check-manifest",
-	"furo",
 	"ipython",
 	"isort",
-	"myst-parser",
-	"pytest",
-	"sphinx-copybutton",
-	"sphinx",
-	"psycopg2-binary",
+	"psycopg[binary]",
+	"rich",
+	"pre-commit",
 ]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 tests = ["check-manifest", "pytest", "coverage"]
@@ -70,20 +65,33 @@ zip-safe = false
 platforms = ["any"]
 include-package-data = true
 
+
 [tool.setuptools.packages.find]
+where = ["src"]
 exclude = ["tests"]
+
 
 [tool.isort]
 profile = "black"
 skip_gitignore = true
 
-[tool.coverage.paths]
-source = ["flask_rest_jsonapi_next"]
 
 [tool.coverage.run]
 branch = true
-source = ["flask_rest_jsonapi_next"]
+source = ["src"]
+
 
 [tool.coverage.report]
 show_missing = true
 precision = 2
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+
+python_classes = ["Describe*", "When*", "describe_*", "when_*"]
+python_functions = ["it_*", "test_*", "then_*", "when_*"]
+python_files = ["test_*", "*_spec.py", "*_test.py"]
+
+[tool.pytest-watcher]
+delay = 0.5

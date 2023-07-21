@@ -16,7 +16,7 @@ An example of flask-rest-jsonapi-next API looks like this:
 
 .. code-block:: python
 
-    # -*- coding: utf-8 -*-
+
 
     from flask import Flask
     from flask_rest_jsonapi_next import Api, ResourceDetail, ResourceList, ResourceRelationship
