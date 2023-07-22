@@ -33,3 +33,13 @@ def test_Node(person_model, person_schema):
         n.related_model
     with pytest.raises(InvalidFilters):
         n.related_schema
+
+
+def test_Node_empty_filter(person_model, person_schema):
+    for filt in [
+        {"and": []},
+        {"or": []},
+        {"not": []},
+    ]:
+        resolved = Node(person_model, filt, None, person_schema).resolve()
+        assert resolved is None

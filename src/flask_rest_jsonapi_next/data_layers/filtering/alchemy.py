@@ -14,8 +14,11 @@ def create_filters(model, filter_info, resource):
     :param Resource resource: the resource
     """
     filters = []
+
     for filter_ in filter_info:
-        filters.append(Node(model, filter_, resource, resource.schema).resolve())
+        resolved = Node(model, filter_, resource, resource.schema).resolve()
+        if resolved is not None:
+            filters.append(resolved)
 
     return filters
 
@@ -61,17 +64,17 @@ class Node(object):
             else:
                 return getattr(self.column, self.operator)(value)
 
-        if "or" in self.filter_:
+        if "or" in self.filter_ and self.filter_["or"]:
             return or_(
                 Node(self.model, filt, self.resource, self.schema).resolve()
                 for filt in self.filter_["or"]
             )
-        if "and" in self.filter_:
+        if "and" in self.filter_ and self.filter_["and"]:
             return and_(
                 Node(self.model, filt, self.resource, self.schema).resolve()
                 for filt in self.filter_["and"]
             )
-        if "not" in self.filter_:
+        if "not" in self.filter_ and self.filter_["not"]:
             return not_(
                 Node(
                     self.model, self.filter_["not"], self.resource, self.schema
