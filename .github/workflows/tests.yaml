@@ -63,23 +63,23 @@ jobs:
       # Tests coverage
       #---------------------------------------------------------------------------------
       # We need coverage data only from single tests run.
-      - name: "run tests with coverage"
+      - name: "run tests with coverage 🔹 🐍 3.11"
         if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage run -m pytest
 
-      - name: "coverage report"
+      - name: "coverage report 🔹 🐍 3.11"
         if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage report
 
-      - name: "generate coverage xml"
+      - name: "generate coverage xml 🔹 🐍 3.11"
         if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage xml -i
 
-      - name: "generate coverage report"
+      - name: "generate coverage report 🔹 🐍 3.11"
         if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage report
 
-      - name: "upload coverage to codecov.io"
+      - name: "upload coverage to codecov.io 🔹 🐍 3.11"
         if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         uses: codecov/codecov-action@v3.1.4
         with:
