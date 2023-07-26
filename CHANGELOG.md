@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.410.0 (2023-07-26)
+
+- fix: don't log stacktrace for common exceptions
+- fix: defend from empty filters
+
 ## 0.40.0 (2023-07-21)
 
 - removed restriction on SQLAlchemy version, library now works with SQLAlchemy 2.x
