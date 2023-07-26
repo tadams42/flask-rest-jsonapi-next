@@ -3,6 +3,7 @@ from typing import Callable, Optional, Type, Union
 
 import flask
 from werkzeug.exceptions import default_exceptions
+from marshmallow import ValidationError
 
 from .error_formatters import error_response_from
 
@@ -56,15 +57,14 @@ class ErrorsAsJsonApi:
 
     @classmethod
     def _std_handler(cls, error):
-        if error in {401, 403, 405} or isinstance(
-            error,
-            (default_exceptions[401], default_exceptions[403], default_exceptions[405]),
+        if isinstance(error, ValidationError):
+            logger.error(f"ValidationError: {error}", exc_info=False)
+        elif error == 405 or isinstance(error, default_exceptions[405]):
+            logger.error(f"{error} ", exc_info=False)
+        elif error in {401, 403} or isinstance(
+            error, (default_exceptions[401], default_exceptions[403])
         ):
-            logger.debug(
-                "Exception bubbled to top level handler and was returned as HTTP "
-                "JSON response.",
-                exc_info=True,
-            )
+            logger.error(f"Authentication {error}", exc_info=False)
         else:
             logger.error(
                 "Exception bubbled to top level handler and was returned as HTTP "
