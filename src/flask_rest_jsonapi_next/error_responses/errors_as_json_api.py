@@ -2,8 +2,8 @@ import logging
 from typing import Callable, Optional, Type, Union
 
 import flask
-from werkzeug.exceptions import default_exceptions
 from marshmallow import ValidationError
+from werkzeug.exceptions import default_exceptions
 
 from .error_formatters import error_response_from
 

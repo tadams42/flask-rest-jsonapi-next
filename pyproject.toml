@@ -25,6 +25,7 @@ dependencies = [
 	"sqlalchemy",
 	"requests",
 	"packaging",
+	"python-dateutil",
 ]
 keywords = [
 	"web",
