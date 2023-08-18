@@ -1,6 +1,28 @@
 # CHANGELOG
 
-## 0.410.0 (2023-07-26)
+
+## 0.42.0 (2023-08-18)
+
+- fix: coerce filter values to Python objects
+  Combination of SQLAlchemy 2.x and psycopg 3.x no longer accepts query parameters as
+  strings for ie. integers and date-times. Query like following:
+
+  ```py
+  User.query.filter(User.id == "42").first()
+  ```
+
+   results with
+
+  ```log
+  ProgrammingError: (psycopg.errors.UndefinedFunction) operator does not exist: bigint = character varying
+  ```
+
+  Ideally, this would've been resolved in either of these libraries or in applications
+  themselves. And in most cases this the only solution. But in `flask-rest-jsonapi-next`
+  we can workaround most of these errors by trying to coerce filter values into correct
+  types.
+
+## 0.41.0 (2023-07-26)
 
 - fix: don't log stacktrace for common exceptions
 - fix: defend from empty filters
