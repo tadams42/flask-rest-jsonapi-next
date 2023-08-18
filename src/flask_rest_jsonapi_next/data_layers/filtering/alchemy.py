@@ -1,5 +1,8 @@
 """Helper to create sqlalchemy filters according to filter querystring parameter"""
 
+from decimal import Decimal
+
+import dateutil
 from sqlalchemy import and_, not_, or_
 
 from ...exceptions import InvalidFilters
@@ -60,9 +63,11 @@ class Node(object):
                 value = {self.filter_["name"].split("__")[1]: value}
 
             if isinstance(value, dict):
-                return getattr(self.column, self.operator)(**value)
+                return getattr(self.column, self.operator)(
+                    **{k: self._coerce(v) for k, v in value.items()}
+                )
             else:
-                return getattr(self.column, self.operator)(value)
+                return getattr(self.column, self.operator)(self._coerce(value))
 
         if "or" in self.filter_ and self.filter_["or"]:
             return or_(
@@ -80,6 +85,25 @@ class Node(object):
                     self.model, self.filter_["not"], self.resource, self.schema
                 ).resolve()
             )
+
+    @classmethod
+    def _coerce(cls, value):
+        try:
+            return int(value)
+        except Exception:
+            pass
+
+        try:
+            return dateutil.parser.isoparse(value)
+        except Exception:
+            pass
+
+        try:
+            return Decimal(value)
+        except Exception:
+            pass
+
+        return value
 
     @property
     def name(self):
