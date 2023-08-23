@@ -5,7 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Iterable, Mapping, Union
 
-import dateutil
+from dateutil import parser
 from sqlalchemy import and_, not_, or_
 
 from ...exceptions import InvalidFilters
@@ -180,7 +180,7 @@ class Node(object):
     @classmethod
     def _coerce(
         cls, value: Union[Mapping, Iterable, str, int, float]
-    ) -> Union[str, int, float, date, datetime, list, dict]:
+    ) -> Union[str, int, float, date, datetime, list, dict, Decimal]:
         if isinstance(value, str):
             try:
                 return int(value)
@@ -188,7 +188,7 @@ class Node(object):
                 pass
 
             try:
-                return dateutil.parser.isoparse(value)
+                return parser.isoparse(value)
             except Exception:
                 pass
 
