@@ -25,4 +25,4 @@ The development version can be downloaded from `its page at GitHub
     $ pip install virtualenv
 
 
-flask-rest-jsonapi-next requires Python >= 3.7
+flask-rest-jsonapi-next requires Python >= 3.8

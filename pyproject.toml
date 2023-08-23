@@ -37,7 +37,7 @@ keywords = [
 	"marshmallow",
 ]
 license = { text = "MIT" }
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 authors = [{ name = "original miLibris/flask-rest-jsonapi contributors" }]
 maintainers = [
 	{ name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" },
