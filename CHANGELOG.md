@@ -16,6 +16,8 @@
   /books?filter={"name": "title", "op": "eq", "val": "foo"}
   ```
 
+- fix: initial filter value coercion implementation from `0.42.0` was incorrect
+
 ## 0.42.0 (2023-08-18)
 
 - fix: coerce filter values to Python objects
