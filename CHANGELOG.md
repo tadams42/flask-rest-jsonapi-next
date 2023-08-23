@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.43.1 (2023-08-23)
+
+- fix: wrong import from dateutil
+
 ## 0.43.0 (2023-08-23)
 
 - fix: allow top level filters to be JSON objects
