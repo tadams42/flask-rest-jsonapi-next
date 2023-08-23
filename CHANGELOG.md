@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 0.43.0 (2023-08-23)
+
+- fix: allow top level filters to be JSON objects
+
+  Previously filters had to be arrays:
+
+  ```
+  /books?filter=[{"name": "title", "op": "eq", "val": "foo"}]
+  ```
+
+  Now following works too:
+
+  ```
+  /books?filter={"name": "title", "op": "eq", "val": "foo"}
+  ```
+
+- fix: initial filter value coercion implementation from `0.42.0` was incorrect
 
 ## 0.42.0 (2023-08-18)
 

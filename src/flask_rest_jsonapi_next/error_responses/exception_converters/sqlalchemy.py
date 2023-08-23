@@ -177,8 +177,9 @@ class _UndefinedFunction(ExceptionConverter):
             # meta = {"sql_msg": detail}
             detail = (
                 "SQL query couldn't coerce query parameter into type of table "
-                "column. For example, it expected integer ({'user_id': 42}), but "
-                "got string instead ({'user_id': '42'}). Check your filter "
+                'column. For example, it expected integer {"user_id": 42} '
+                'or value convertible to integer {"user_id": "42"} but '
+                'got string instead ({"user_id": ""42""}). Check your filter '
                 "expressions."
             )
             title = "SQLTypeError"

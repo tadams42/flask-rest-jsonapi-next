@@ -1,6 +1,9 @@
 """Helper to create sqlalchemy filters according to filter querystring parameter"""
+from __future__ import annotations
 
+from datetime import date, datetime
 from decimal import Decimal
+from typing import Iterable, Mapping, Union
 
 import dateutil
 from sqlalchemy import and_, not_, or_
@@ -64,10 +67,10 @@ class Node(object):
 
             if isinstance(value, dict):
                 return getattr(self.column, self.operator)(
-                    **{k: self._coerce(v) for k, v in value.items()}
+                    **{k: v for k, v in value.items()}
                 )
             else:
-                return getattr(self.column, self.operator)(self._coerce(value))
+                return getattr(self.column, self.operator)(value)
 
         if "or" in self.filter_ and self.filter_["or"]:
             return or_(
@@ -85,25 +88,6 @@ class Node(object):
                     self.model, self.filter_["not"], self.resource, self.schema
                 ).resolve()
             )
-
-    @classmethod
-    def _coerce(cls, value):
-        try:
-            return int(value)
-        except Exception:
-            pass
-
-        try:
-            return dateutil.parser.isoparse(value)
-        except Exception:
-            pass
-
-        try:
-            return Decimal(value)
-        except Exception:
-            pass
-
-        return value
 
     @property
     def name(self):
@@ -191,7 +175,38 @@ class Node(object):
             if "val" not in self.filter_:
                 raise InvalidFilters("Can't find value or field in a filter")
 
-            return self.filter_["val"]
+            return self._coerce(self.filter_["val"])
+
+    @classmethod
+    def _coerce(
+        cls, value: Union[Mapping, Iterable, str, int, float]
+    ) -> Union[str, int, float, date, datetime, list, dict]:
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except Exception:
+                pass
+
+            try:
+                return dateutil.parser.isoparse(value)
+            except Exception:
+                pass
+
+            try:
+                return Decimal(value)
+            except Exception:
+                pass
+
+            return value
+
+        elif isinstance(value, Mapping):
+            return {k: cls._coerce(v) for k, v in value.items()}
+
+        elif isinstance(value, Iterable):
+            return [cls._coerce(_) for _ in value]
+
+        else:
+            return value
 
     @property
     def related_model(self):
