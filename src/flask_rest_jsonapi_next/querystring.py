@@ -99,11 +99,19 @@ class QueryStringManager(object):
         filters = self.qs.get("filter")
         if filters is not None:
             try:
-                results.extend(json.loads(filters))
+                data = json.loads(filters)
+
+                if isinstance(data, dict):
+                    results.append(data)
+                else:
+                    results.extend(data)
+
             except (ValueError, TypeError):
                 raise InvalidFilters("Parse error")
+
         if self._get_key_values("filter["):
             results.extend(self._simple_filters(self._get_key_values("filter[")))
+
         return results
 
     @property
