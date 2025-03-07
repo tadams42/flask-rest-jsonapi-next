@@ -1,4 +1,5 @@
 """This module is a CRUD interface between resource managers and the sqlalchemy ORM"""
+
 import warnings
 
 import marshmallow
@@ -7,7 +8,7 @@ from flask import current_app
 from marshmallow import class_registry
 from marshmallow.base import SchemaABC
 from packaging.version import Version
-from sqlalchemy import orm
+from sqlalchemy import asc, desc, orm
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import ColumnProperty, RelationshipProperty
 from sqlalchemy.orm.attributes import QueryableAttribute
@@ -16,7 +17,6 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from ..exceptions import (
     InvalidInclude,
-    InvalidSort,
     InvalidType,
     JsonApiException,
     ObjectNotFound,
@@ -150,20 +150,17 @@ class SqlalchemyDataLayer(BaseDataLayer):
         if qs.filters:
             query = self.filter_query(query, qs.filters, self.model)
 
+        if getattr(self, "eagerload_includes", True):
+            query = self.eagerload_includes(query, qs)
+
         if qs.sorting:
             query = self.sort_query(query, qs.sorting)
 
         object_count = query.count()
 
-        if getattr(self, "eagerload_includes", True):
-            query = self.eagerload_includes(query, qs)
-
         query = self.paginate_query(query, qs.pagination)
 
-        if as_query:
-            collection = query
-        else:
-            collection = query.all()
+        collection = query if as_query else query.all()
 
         collection = self.after_get_collection(collection, qs, view_kwargs)
 
@@ -647,16 +644,30 @@ class SqlalchemyDataLayer(BaseDataLayer):
         :param list sort_info: sort information
         :return Query: the sorted query
         """
-        for sort_opt in sort_info:
-            field = sort_opt["field"]
-            if not hasattr(self.model, field):
-                raise InvalidSort(
-                    "{} has no attribute {}".format(self.model.__name__, field)
-                )
-            query = query.order_by(
-                getattr(getattr(self.model, field), sort_opt["order"])()
-            )
-        return query
+        order_conditions = []
+
+        for relation_path in sort_info:
+            relation_path["field"] = relation_path["field"].replace("-", "")
+
+            relation_parts = relation_path["field"].split(".")
+
+            current_model = self.model
+
+            for _i, part in enumerate(relation_parts[:-1]):
+                relation = getattr(current_model, part)
+
+                query = query.outerjoin(relation)
+
+                current_model = relation.mapper.class_
+
+            final_attribute = getattr(current_model, relation_parts[-1])
+
+            if relation_path["order"] == "desc":
+                order_conditions.append(desc(final_attribute))
+            else:
+                order_conditions.append(asc(final_attribute))
+
+        return query.order_by(*order_conditions)
 
     def paginate_query(self, query, paginate_info):
         """Paginate query according to jsonapi 1.0
@@ -716,7 +727,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
     def _field_eager_loader(self, schema, field_name, previous_loader=None):
         try:
             model_attribute_name = get_model_field(schema, field_name)
-        except Exception as e:
+        except Exception:
             raise InvalidInclude(field_name)
 
         loader = previous_loader
@@ -726,7 +737,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
         if model:
             try:
                 model_attribute = getattr(model, model_attribute_name)
-            except Exception as e:
+            except Exception:
                 raise InvalidInclude(model_attribute_name)
         else:
             warnings.warn(
