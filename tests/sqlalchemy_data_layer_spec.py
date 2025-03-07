@@ -132,7 +132,45 @@ def test_sqlalchemy_data_layer_delete_relationship_error(
 def test_sqlalchemy_data_layer_sort_query_error(db, person_model, monkeypatch):
     with pytest.raises(InvalidSort):
         dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
-        dl.sort_query(None, [dict(field="test")])
+        dl.sort_query(None, [dict(field="test", order="asc")])
+
+
+def test_sqlalchemy_data_layer_sort_query_simple_asc(db, person_model, monkeypatch):
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    query = db.session.query(person_model)
+    dl.sort_query(query, [dict(field="name", order="asc")])
+
+
+def test_sqlalchemy_data_layer_sort_query_relation(db, person_model, monkeypatch):
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    query = db.session.query(person_model)
+    dl.sort_query(query, [dict(field="single_tag.key", order="asc")])
+
+
+def test_sqlalchemy_data_layer_sort_query_relation_multiple(
+    db, person_model, monkeypatch
+):
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    query = db.session.query(person_model)
+    dl.sort_query(
+        query,
+        [
+            dict(field="single_tag.key", order="asc"),
+            dict(field="single_tag.value", order="asc"),
+            dict(field="computers.serial", order="asc"),
+        ],
+    )
+
+
+def test_sqlalchemy_data_layer_sort_query_simple_relation_error(
+    db, person_model, monkeypatch
+):
+    with pytest.raises(InvalidSort):
+        dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+        query = db.session.query(person_model)
+        dl.sort_query(
+            query, [dict(field="single_tag.non_existent_property", order="asc")]
+        )
 
 
 def test_base_data_layer():
