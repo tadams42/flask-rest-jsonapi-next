@@ -17,6 +17,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from ..exceptions import (
     InvalidInclude,
+    InvalidSort,
     InvalidType,
     JsonApiException,
     ObjectNotFound,
@@ -660,7 +661,14 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
                 current_model = relation.mapper.class_
 
-            final_attribute = getattr(current_model, relation_parts[-1])
+            attribute_name = relation_parts[-1]
+
+            if not hasattr(current_model, attribute_name):
+                raise InvalidSort(
+                    f"Attribute {attribute_name} does not exist on {current_model.__name__}"
+                )
+
+            final_attribute = getattr(current_model, attribute_name)
 
             if relation_path["order"] == "desc":
                 order_conditions.append(desc(final_attribute))
