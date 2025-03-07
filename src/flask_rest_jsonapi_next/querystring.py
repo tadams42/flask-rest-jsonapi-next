@@ -225,8 +225,12 @@ class QueryStringManager(object):
                 relationships = get_relationships(current_schema)
 
                 if field in relationships:
-                    type = current_schema._declared_fields[field].__dict__["type_"]
-                    current_schema = get_schema_from_type(type)
+                    if is_last:
+                        raise InvalidSort(
+                            f"{field} is a relationship field and requires an attribute to sort on"
+                        )
+                    type_ = current_schema._declared_fields[field].__dict__["type_"]
+                    current_schema = get_schema_from_type(type_)
                 elif is_last:
                     if field not in current_schema._declared_fields:
                         raise InvalidSort(
