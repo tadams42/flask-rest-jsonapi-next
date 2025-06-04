@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         os: [ubuntu-latest]
         data-layer: ["SQLAlchemy 1.x", "SQLAlchemy 2.x"]
         db-api: ["sqlite", "psycopg 2", "psycopg 3"]
@@ -31,11 +31,8 @@ jobs:
           cache: 'pip'
           cache-dependency-path: pyproject.toml
 
-      - name: "📦 ensure latest 🐍 pip"
-        run: python -m pip install --upgrade pip
-
-      - name: "📦 ensure latest 🐍 wheel"
-        run: python -m pip install --upgrade wheel
+      - name: "📦 ensure latest 🐍 pip and wheel"
+        run: python -m pip install --upgrade pip wheel
 
       - name: "📦 install SQLAlchemy 1.x"
         if: ${{ matrix.data-layer == 'SQLAlchemy 1.x' }}
@@ -63,24 +60,24 @@ jobs:
       # Tests coverage
       #---------------------------------------------------------------------------------
       # We need coverage data only from single tests run.
-      - name: "run tests with coverage 🔹 🐍 3.11"
-        if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
+      - name: "run tests with coverage 🔹 🐍 3.13"
+        if: ${{ matrix.python-version == '3.13' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage run -m pytest
 
-      - name: "coverage report 🔹 🐍 3.11"
-        if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
+      - name: "coverage report 🔹 🐍 3.13"
+        if: ${{ matrix.python-version == '3.13' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage report
 
-      - name: "generate coverage xml 🔹 🐍 3.11"
-        if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
+      - name: "generate coverage xml 🔹 🐍 3.13"
+        if: ${{ matrix.python-version == '3.13' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage xml -i
 
-      - name: "generate coverage report 🔹 🐍 3.11"
-        if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
+      - name: "generate coverage report 🔹 🐍 3.13"
+        if: ${{ matrix.python-version == '3.13' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         run: coverage report
 
-      - name: "upload coverage to codecov.io 🔹 🐍 3.11"
-        if: ${{ matrix.python-version == '3.11' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
+      - name: "upload coverage to codecov.io 🔹 🐍 3.13"
+        if: ${{ matrix.python-version == '3.13' && matrix.data-layer == 'SQLAlchemy 2.x' && matrix.db-api == 'psycopg 3'}}
         uses: codecov/codecov-action@v3.1.4
         with:
           file: ./coverage.xml
