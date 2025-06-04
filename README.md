@@ -3,7 +3,6 @@
 [![PyPi Status](https://badge.fury.io/py/flask-rest-jsonapi-next.svg)](https://badge.fury.io/py/flask-rest-jsonapi-next)
 [![license](https://img.shields.io/pypi/l/flask-rest-jsonapi-next.svg)](https://opensource.org/licenses/MIT)
 [![tests](https://github.com/tadams42/flask-rest-jsonapi-next/actions/workflows/tests.yaml/badge.svg?branch=development)](https://github.com/tadams42/flask-rest-jsonapi-next/actions/workflows/tests.yaml)
-[![codecov](https://codecov.io/gh/tadams42/flask-rest-jsonapi-next/branch/development/graph/badge.svg?token=9WIWK7B3XX)](https://codecov.io/gh/tadams42/flask-rest-jsonapi-next)
 [![Documentation Status](https://readthedocs.org/projects/flask-rest-jsonapi-next/badge/?version=latest)](http://flask-rest-jsonapi-next.readthedocs.io/en/latest/?badge=latest)
 [![python_versions](https://img.shields.io/pypi/pyversions/flask-rest-jsonapi-next.svg)](https://pypi.org/project/flask-rest-jsonapi-next/)
 
