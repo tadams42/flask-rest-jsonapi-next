@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.44.0
+## 0.44.1
 
 - `marshmallow` version pinned to `< 4`
   - we depend on `marshmallow-jsonapi` that is no longer maintained
