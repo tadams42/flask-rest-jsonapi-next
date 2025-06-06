@@ -36,7 +36,7 @@ requires-python = ">=3.9"
 dependencies = [
     "Flask >= 2.2.0",
     "marshmallow < 4",
-    "marshmallow-jsonapi@git+https://github.com/tadams42/marshmallow-jsonapi.git@dev",
+    "marshmallow-jsonapi-minfork",
     "sqlalchemy",
     "requests",
     "packaging",
@@ -45,10 +45,6 @@ dependencies = [
 [project.urls]
 Source = "https://github.com/tadams42/flask-rest-jsonapi-next"
 Documentation = "https://flask-rest-jsonapi-next.readthedocs.io/en/latest/"
-
-
-[tool.uv.sources]
-marshmallow-jsonapi = { git = "https://github.com/tadams42/marshmallow-jsonapi", branch = "dev" }
 
 
 # Private, local dependencies

@@ -7,6 +7,7 @@ on:
       # Once thing had been pushed to master branch, tests have already had to run and
       # pass so no need to run them again
       - "master"
+      - "main"
 
 
 jobs:
