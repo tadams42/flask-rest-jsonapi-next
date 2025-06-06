@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.44.0
+
+- `marshmallow` version pinned to `< 4`
+  - we depend on `marshmallow-jsonapi` that is no longer maintained
+  - upgrading `marshmallow-jsonapi` to `marshmallow 4` is complicated and not worth the
+    effort for now
+- build: dropped support for Python `3.7` and `3.8`
+- build: switched from `pip` to `uv`
+- feat: sort on relationships, PR #4, thnx to @tanisic
+
 ## 0.43.1 (2023-08-23)
 
 - fix: wrong import from dateutil

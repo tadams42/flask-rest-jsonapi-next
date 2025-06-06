@@ -5,60 +5,69 @@ requires = ["setuptools>=64", "wheel"]
 
 [project]
 name = "flask-rest-jsonapi-next"
-version = "0.43.1"
+version = "0.44.0"
 description = "Flask extension to create REST web api according to JSONAPI 1.0 specification with Flask, Marshmallow and data provider of your choice (SQLAlchemy, MongoDB, ...)"
 readme = "README.md"
-classifiers = [
-	"Framework :: Flask",
-	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.7",
-	"Programming Language :: Python :: 3.8",
-	"Programming Language :: Python :: 3.9",
-	"Programming Language :: Python :: 3.10",
-	"Programming Language :: Python :: 3 :: Only",
-	"License :: OSI Approved :: MIT License",
-]
-dependencies = [
-	"Flask >= 2.2.0",
-	"marshmallow >= 3",
-	"marshmallow-jsonapi",
-	"sqlalchemy",
-	"requests",
-	"packaging",
-	"python-dateutil",
-]
-keywords = [
-	"web",
-	"api",
-	"rest",
-	"jsonapi",
-	"flask",
-	"sqlalchemy",
-	"marshmallow",
-]
-license = { text = "MIT" }
-requires-python = ">=3.8"
 authors = [{ name = "original miLibris/flask-rest-jsonapi contributors" }]
 maintainers = [
-	{ name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" },
+    { name = "Tomislav Adamic", email = "tomislav.adamic@gmail.com" },
 ]
-
+keywords = [
+    "web",
+    "api",
+    "rest",
+    "jsonapi",
+    "flask",
+    "sqlalchemy",
+    "marshmallow",
+]
+classifiers = [
+    "Framework :: Flask",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+]
+license = "MIT"
+requires-python = ">=3.9"
+dependencies = [
+    "Flask >= 2.2.0",
+    "marshmallow < 4",
+    "marshmallow-jsonapi@git+https://github.com/tadams42/marshmallow-jsonapi.git@dev",
+    "sqlalchemy",
+    "requests",
+    "packaging",
+    "python-dateutil",
+]
 [project.urls]
 Source = "https://github.com/tadams42/flask-rest-jsonapi-next"
 Documentation = "https://flask-rest-jsonapi-next.readthedocs.io/en/latest/"
 
-[project.optional-dependencies]
+
+[tool.uv.sources]
+marshmallow-jsonapi = { git = "https://github.com/tadams42/marshmallow-jsonapi", branch = "dev" }
+
+
+# Private, local dependencies
+[dependency-groups]
 dev = [
-	"black",
-	"bump2version",
-	"ipython",
-	"isort",
-	"psycopg[binary]",
-	"rich",
-	"pre-commit",
+    "black",
+    "bump2version",
+    "ipython",
+    "rich",
+    "pre-commit",
+    "check-manifest",
+    "pytest",
 ]
+
+
+# Published, extra dependencies
+# Ie. package can be installed with `pip install package_name[extra_dependency_name]`
+[project.optional-dependencies]
 docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
-tests = ["check-manifest", "pytest", "coverage"]
 
 
 [tool.setuptools]
@@ -86,13 +95,14 @@ source = ["src"]
 show_missing = true
 precision = 2
 
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
-
 python_classes = ["Describe*", "When*", "describe_*", "when_*"]
 python_functions = ["it_*", "test_*", "then_*", "when_*"]
 python_files = ["test_*", "*_spec.py", "*_test.py"]
+
 
 [tool.pytest-watcher]
 delay = 0.5
