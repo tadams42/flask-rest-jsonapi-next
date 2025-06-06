@@ -93,3 +93,5 @@ ENV/
 *.code-workspace
 
 /scratchpad
+
+uv.lock
