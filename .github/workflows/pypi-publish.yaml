@@ -2,15 +2,17 @@
 # For more information see:
 #   - https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
 #   - https://docs.pypi.org/trusted-publishers/using-a-publisher/
+name: Build and release Python Package
 
-name: Upload Python Package
 
 on:
   release:
     types: [published]
 
+
 permissions:
   contents: read
+
 
 jobs:
   pypi-publish:
@@ -21,23 +23,26 @@ jobs:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
 
+    env:
+      UV_PYTHON: '3.13'
+
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up 🐍
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
-        cache: 'pip'
-        cache-dependency-path: pyproject.toml
+        python-version: '3.13'
 
-    - name: 📦 Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        cache-dependency-glob: "**/pyproject.toml"
 
     - name: 🏗 Build package 🚧
-      run: python -m build
+      # run: python -m build
+      run: uv build
 
     - name: 🚚 Publish package distributions to PyPI 🚀
       uses: pypa/gh-action-pypi-publish@release/v1
