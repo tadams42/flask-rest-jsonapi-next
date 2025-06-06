@@ -9,7 +9,7 @@
 project = "flask-rest-jsonapi-next"
 copyright = "2016-2021 miLibris; 2021-... miLibris, tadams42"
 author = "tadams42"
-release = "0.43.1"
+release = "0.44.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
