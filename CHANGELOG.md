@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## unreleased
+
+- build: dropped support for Python `3.7` and `3.8`
+- build: switched from `pip` to `uv`
+- feat: sort on relationships, PR #4, thnx to @tanisic
+
 ## 0.43.1 (2023-08-23)
 
 - fix: wrong import from dateutil
