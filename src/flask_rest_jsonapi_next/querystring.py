@@ -199,6 +199,8 @@ class QueryStringManager(object):
 
         return result
 
+    _RELATIONSHIP_SEPARATOR = "."
+
     @property
     def sorting(self):
         """
@@ -217,32 +219,49 @@ class QueryStringManager(object):
         sorting_results = []
         for sort_field in self.qs["sort"].split(","):
             current_schema = self.schema
-            fields = sort_field.lstrip("-").split(".")
             order = "desc" if sort_field.startswith("-") else "asc"
+            sort_field: str = sort_field.lstrip("-")
 
-            for idx, field in enumerate(fields):
-                is_last = idx == len(fields) - 1
-                relationships = get_relationships(current_schema)
-
-                if field in relationships:
-                    if is_last:
-                        raise InvalidSort(
-                            f"{field} is a relationship field and requires an attribute to sort on"
-                        )
-                    type_ = current_schema._declared_fields[field].__dict__["type_"]
-                    current_schema = get_schema_from_type(type_)
-                elif is_last:
-                    if field not in current_schema._declared_fields:
-                        raise InvalidSort(
-                            f"{current_schema.__name__} has no attribute {field}"
-                        )
-                    field = get_model_field(current_schema, field)
-                else:
+            if self._RELATIONSHIP_SEPARATOR not in sort_field:
+                if sort_field not in self.schema._declared_fields:
                     raise InvalidSort(
-                        f"You can't sort on {field} because it is not a relationship field"
+                        f"{self.schema.__name__} has no attribute {sort_field}"
                     )
 
-            sorting_results.append({"field": sort_field, "order": order})
+                if sort_field in get_relationships(self.schema):
+                    raise InvalidSort(
+                        f"{sort_field} is a relationship field and requires an attribute to sort on"
+                    )
+
+                field = get_model_field(self.schema, sort_field)
+                sorting_results.append({"field": field, "order": order})
+
+            else:
+                fields = sort_field.split(self._RELATIONSHIP_SEPARATOR)
+
+                for idx, field in enumerate(fields):
+                    is_last = idx == len(fields) - 1
+                    relationships = get_relationships(current_schema)
+
+                    if field in relationships:
+                        if is_last:
+                            raise InvalidSort(
+                                f"{field} is a relationship field and requires an attribute to sort on"
+                            )
+                        type_ = current_schema._declared_fields[field].__dict__["type_"]
+                        current_schema = get_schema_from_type(type_)
+                    elif is_last:
+                        if field not in current_schema._declared_fields:
+                            raise InvalidSort(
+                                f"{current_schema.__name__} has no attribute {field}"
+                            )
+                        field = get_model_field(current_schema, field)
+                    else:
+                        raise InvalidSort(
+                            f"You can't sort on {field} because it is not a relationship field"
+                        )
+
+                sorting_results.append({"field": sort_field, "order": order})
 
         return sorting_results
 

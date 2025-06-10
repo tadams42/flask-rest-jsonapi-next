@@ -58,3 +58,40 @@ def test_compute_schema_propagate_context(person_schema, computer_schema):
     assert schema.declared_fields["computers"].__dict__[
         "_Relationship__schema"
     ].__dict__["context"] == dict(foo="bar")
+
+
+def test_query_string_manager_sorting_not_through_relationship(person_schema):
+    query_string = {"sort": "name"}
+    qsm = QSManager(query_string, person_schema)
+    assert qsm.sorting == [{"field": "name", "order": "asc"}]
+
+    query_string = {"sort": "-name"}
+    qsm = QSManager(query_string, person_schema)
+    assert qsm.sorting == [{"field": "name", "order": "desc"}]
+
+    for sort_field in ["surname", "-surname"]:
+        query_string = {"sort": sort_field}
+        qsm = QSManager(query_string, person_schema)
+        with pytest.raises(InvalidSort):
+            qsm.sorting
+
+
+def test_query_string_manager_sorting_through_relationship(person_schema):
+    query_string = {"sort": "computers.serial"}
+    qsm = QSManager(query_string, person_schema)
+    assert qsm.sorting == [{"field": "computers.serial", "order": "asc"}]
+
+    query_string = {"sort": "-computers.serial"}
+    qsm = QSManager(query_string, person_schema)
+    assert qsm.sorting == [{"field": "computers.serial", "order": "desc"}]
+
+    for sort_field in [
+        "computers",
+        "-computers",
+        "computers.brand",
+        "-computers.brand",
+    ]:
+        query_string = {"sort": sort_field}
+        qsm = QSManager(query_string, person_schema)
+        with pytest.raises(InvalidSort):
+            qsm.sorting
