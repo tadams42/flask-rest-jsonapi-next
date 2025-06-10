@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.44.2
+
+- fix: new QS sorting was not correctly removing sorting operator
+
 ## 0.44.1
 
 - `marshmallow` version pinned to `< 4`
