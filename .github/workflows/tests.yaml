@@ -19,10 +19,11 @@ jobs:
         os: [ubuntu-latest]
         sqlalchemy-version: ["SA 1.x", "SA 2.x"]
         db-api-version: ["sqlite", "psycopg 2", "psycopg 3"]
+        flask-version: ["Flask 2.x", "Flask 3.x"]
 
     runs-on: ${{ matrix.os }}
 
-    name: "🐍 ${{ matrix.python-version }} 🔹 ${{ matrix.sqlalchemy-version }} 🔹 ${{ matrix.db-api-version }}"
+    name: "🐍 ${{ matrix.python-version }} 🔹 ${{ matrix.sqlalchemy-version }} 🔹 ${{ matrix.db-api-version }} 🔹 ${{ matrix.flask-version }}"
 
     env:
       UV_PYTHON: ${{ matrix.python-version }}
@@ -61,5 +62,13 @@ jobs:
         if: ${{ matrix.db-api-version == 'psycopg 3' }}
         run: uv pip install "psycopg[binary]~=3.2"
 
-      - name: "run tests 🔹 🐍 ${{ matrix.python-version }} 🔹 ${{ matrix.sqlalchemy-version }} 🔹 ${{ matrix.db-api-version }}"
+      - name: "📦 install Flask 2"
+        if: ${{ matrix.flask-version == 'Flask 2.x' }}
+        run: uv pip install "Flask~=2.0"
+
+      - name: "📦 install Flask 3"
+        if: ${{ matrix.flask-version == 'Flask 3.x' }}
+        run: uv pip install "Flask~=3.0"
+
+      - name: "run tests"
         run: uv run pytest .
