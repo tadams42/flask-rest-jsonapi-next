@@ -15,12 +15,13 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13","3.14"]
         os: [ubuntu-latest]
         sqlalchemy-version: ["SA 1.x", "SA 2.x"]
         db-api-version: ["sqlite", "psycopg 2", "psycopg 3"]
-        marshmallow-version: ["3.26.1"]
+
     runs-on: ${{ matrix.os }}
+
     name: "🐍 ${{ matrix.python-version }} 🔹 ${{ matrix.sqlalchemy-version }} 🔹 ${{ matrix.db-api-version }}"
 
     env:

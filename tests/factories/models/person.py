@@ -30,6 +30,7 @@ class PersonSchema(Schema):
         type_ = "person"
         self_view = "api.person_detail"
         self_view_kwargs = {"person_id": "<id>"}
+        model = Person
 
     id = fields.Integer(as_string=True, attribute="person_id")
     name = fields.Str(required=True)

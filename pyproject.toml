@@ -24,7 +24,6 @@ keywords = [
 classifiers = [
     "Framework :: Flask",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -32,11 +31,10 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 license = "MIT"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "Flask >= 2.2.0",
-    "marshmallow < 4",
-    "marshmallow-jsonapi-minfork",
+    "Flask>=2.2.0",
+    "marshmallow-jsonapi-minfork>=0.26.0",
     "sqlalchemy",
     "requests",
     "packaging",
