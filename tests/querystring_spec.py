@@ -42,24 +42,6 @@ def test_compute_schema(person_schema):
     compute_schema(person_schema, dict(only=list()), qsm, list())
 
 
-def test_compute_schema_propagate_context(person_schema, computer_schema):
-    query_string = {}
-    qsm = QSManager(query_string, person_schema)
-    schema = compute_schema(person_schema, dict(), qsm, ["computers"])
-    assert (
-        schema.declared_fields["computers"]
-        .__dict__["_Relationship__schema"]
-        .__dict__["context"]
-        == dict()
-    )
-    schema = compute_schema(
-        person_schema, dict(context=dict(foo="bar")), qsm, ["computers"]
-    )
-    assert schema.declared_fields["computers"].__dict__[
-        "_Relationship__schema"
-    ].__dict__["context"] == dict(foo="bar")
-
-
 def test_query_string_manager_sorting_not_through_relationship(person_schema):
     query_string = {"sort": "name"}
     qsm = QSManager(query_string, person_schema)

@@ -18,6 +18,7 @@ class ComputerSchema(Schema):
         type_ = "computer"
         self_view = "api.computer_detail"
         self_view_kwargs = {"id": "<id>"}
+        model = Computer
 
     id = fields.Integer(as_string=True)
     serial = fields.Str(required=True)

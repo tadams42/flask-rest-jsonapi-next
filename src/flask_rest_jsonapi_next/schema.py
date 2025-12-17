@@ -2,8 +2,7 @@
 
 from typing import Optional, Tuple
 
-from marshmallow import class_registry
-from marshmallow.base import SchemaABC
+from marshmallow import class_registry, Schema
 from marshmallow_jsonapi.fields import List, Nested, Relationship
 
 from .exceptions import InvalidInclude
@@ -63,9 +62,7 @@ def compute_schema(schema_cls, default_kwargs, qs, include):
                 "_Relationship__schema"
             ]
             related_schema_kwargs = {}
-            if "context" in default_kwargs:
-                related_schema_kwargs["context"] = default_kwargs["context"]
-            if isinstance(related_schema_cls, SchemaABC):
+            if isinstance(related_schema_cls, Schema):
                 related_schema_kwargs["many"] = related_schema_cls.many
                 related_schema_cls = related_schema_cls.__class__
             if isinstance(related_schema_cls, str):

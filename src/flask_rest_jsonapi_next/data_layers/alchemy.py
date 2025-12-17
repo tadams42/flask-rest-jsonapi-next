@@ -5,8 +5,7 @@ import warnings
 import marshmallow
 import sqlalchemy
 from flask import current_app
-from marshmallow import class_registry
-from marshmallow.base import SchemaABC
+from marshmallow import Schema, class_registry
 from packaging.version import Version
 from sqlalchemy import asc, desc, orm
 from sqlalchemy.inspection import inspect
@@ -715,7 +714,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
                     )
 
                     related_schema_cls = get_related_schema(current_schema, field_name)
-                    if isinstance(related_schema_cls, SchemaABC):
+                    if isinstance(related_schema_cls, Schema):
                         related_schema_cls = related_schema_cls.__class__
                     else:
                         related_schema_cls = class_registry.get_class(
@@ -800,7 +799,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
                     related_schema_cls = get_related_schema(current_schema, obj)
 
-                    if isinstance(related_schema_cls, SchemaABC):
+                    if isinstance(related_schema_cls, Schema):
                         related_schema_cls = related_schema_cls.__class__
                     else:
                         related_schema_cls = class_registry.get_class(

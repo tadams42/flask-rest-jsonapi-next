@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.45.0
+
+- breaking change: dropped support for marshmallow 3.x
+- dropped support for Python 3.9
+
 ## 0.44.2
 
 - fix: new QS sorting was not correctly removing sorting operator
