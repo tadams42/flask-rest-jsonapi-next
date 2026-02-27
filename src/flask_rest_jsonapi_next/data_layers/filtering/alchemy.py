@@ -6,10 +6,17 @@ from decimal import Decimal
 from typing import Iterable, Mapping, Union
 
 from dateutil import parser
-from sqlalchemy import and_, not_, or_
+from sqlalchemy import and_, cast, not_, or_, String
+from sqlalchemy.sql.sqltypes import Enum as SAEnum
 
 from ...exceptions import InvalidFilters
 from ...schema import get_model_field, get_nested_fields, get_relationships
+
+STRING_PATTERN_OPERATORS = frozenset({
+    "like", "ilike", "notlike", "notilike",
+    "contains", "startswith", "endswith",
+    "icontains", "istartswith", "iendswith",
+})
 
 
 def create_filters(model, filter_info, resource):
@@ -70,7 +77,8 @@ class Node(object):
                     **{k: v for k, v in value.items()}
                 )
             else:
-                return getattr(self.column, self.operator)(value)
+                column = self._maybe_cast_enum_for_string_op()
+                return getattr(column, self.operator)(value)
 
         if "or" in self.filter_ and self.filter_["or"]:
             return or_(
@@ -139,6 +147,14 @@ class Node(object):
             raise InvalidFilters(
                 "{} has no attribute {}".format(self.model.__name__, model_field)
             )
+
+    def _maybe_cast_enum_for_string_op(self):
+        """Cast Enum columns to String for string-pattern operators."""
+        if self.op in STRING_PATTERN_OPERATORS:
+            col_type = getattr(self.column, "type", None)
+            if isinstance(col_type, SAEnum):
+                return cast(self.column, String)
+        return self.column
 
     @property
     def operator(self):
