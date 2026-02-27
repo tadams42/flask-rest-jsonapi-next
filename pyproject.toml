@@ -68,16 +68,25 @@ docs = ["furo", "myst-parser", "sphinx", "sphinx-copybutton"]
 zip-safe = false
 platforms = ["any"]
 include-package-data = true
-
-
 [tool.setuptools.packages.find]
 where = ["src"]
 exclude = ["tests"]
 
 
-[tool.isort]
-profile = "black"
-skip_gitignore = true
+[tool.ruff]
+exclude = [".git", ".venv", "build", "dist"]
+line-length = 88                             # Same as Black.
+indent-width = 4                             # Same as Black.
+target-version = "py313"
+cache-dir = "~/.cache/ruff"
+src = [".", "src"]
+
+
+[tool.ruff.format]
+quote-style = "double" # Like Black, use double quotes for strings.
+indent-style = "space" # Like Black, indent with spaces, rather than tabs.
+skip-magic-trailing-comma = false # Like Black, respect magic trailing commas.
+line-ending = "auto" # Like Black, automatically detect the appropriate line ending.
 
 
 [tool.coverage.run]
