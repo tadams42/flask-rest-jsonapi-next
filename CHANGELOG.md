@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.46.0
+
+- fix: using string filters on enum fields didn't work with SQLAlchemy
+
+  For example, request `?filter={"name":"foo","op":"ilike","val":"bar%"}` when `foo` is
+  `sa.Enum` would result with error.
+
 ## 0.45.0
 
 - breaking change: dropped support for marshmallow 3.x
