@@ -36,6 +36,11 @@ from .filtering.alchemy import create_filters
 _IS_SQLALCHEMY_1x = Version(sqlalchemy.__version__) < Version("2.0.0")
 
 
+def _is_select(query):
+    """Return True if query is a SQLAlchemy 2.x Select (sa.select(...)) object."""
+    return isinstance(query, sqlalchemy.Select)
+
+
 class FlaskRestJsonApiNextWarning(UserWarning):
     pass
 
@@ -123,7 +128,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
         if qs is not None and getattr(self, "eagerload_includes", True):
             query = self.eagerload_includes(query, qs)
 
-        obj = query.one()
+        obj = self._exec_one(query)
 
         self.after_get_object(obj, view_kwargs)
 
@@ -156,11 +161,11 @@ class SqlalchemyDataLayer(BaseDataLayer):
         if qs.sorting:
             query = self.sort_query(query, qs.sorting)
 
-        object_count = query.count()
+        object_count = self._exec_count(query)
 
         query = self.paginate_query(query, qs.pagination)
 
-        collection = query if as_query else query.all()
+        collection = query if (as_query and not _is_select(query)) else self._exec_all(query)
 
         collection = self.after_get_collection(collection, qs, view_kwargs)
 
@@ -525,11 +530,11 @@ class SqlalchemyDataLayer(BaseDataLayer):
         :return DeclarativeMeta: a related object
         """
         try:
-            related_object = (
-                self.session.query(related_model)
-                .filter(getattr(related_model, related_id_field) == obj["id"])
-                .one()
-            )
+            related_object = self.session.scalars(
+                sqlalchemy.select(related_model).where(
+                    getattr(related_model, related_id_field) == obj["id"]
+                )
+            ).one()
         except NoResultFound:
             raise RelatedObjectNotFound(
                 "{}.{}: {} not found".format(
@@ -621,6 +626,37 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         for nested_field in nested_fields_to_apply:
             setattr(obj, nested_field["field"], nested_field["value"])
+
+    def _exec_count(self, query) -> int:
+        """Return number of rows for query.
+
+        Supports both legacy orm.Query and sa.Select objects.
+        """
+        if _is_select(query):
+            return self.session.scalar(
+                sqlalchemy.select(sqlalchemy.func.count()).select_from(
+                    query.subquery()
+                )
+            )
+        return query.count()
+
+    def _exec_all(self, query) -> list:
+        """Return all rows for query.
+
+        Supports both legacy orm.Query and sa.Select objects.
+        """
+        if _is_select(query):
+            return list(self.session.scalars(query))
+        return query.all()
+
+    def _exec_one(self, query):
+        """Return exactly one row for query (raises if none or multiple).
+
+        Supports both legacy orm.Query and sa.Select objects.
+        """
+        if _is_select(query):
+            return self.session.scalars(query).one()
+        return query.one()
 
     def filter_query(self, query, filter_info, model):
         """Filter query according to jsonapi 1.0
