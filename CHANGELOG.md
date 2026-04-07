@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## unreleased
+## 0.47.0
 
 - `SQLAlchemyDataLayer` now works with both, legacy `orm.Query` and new `sa.Select`
   objects transparently
