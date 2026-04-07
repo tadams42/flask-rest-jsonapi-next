@@ -4,6 +4,7 @@ import sqlalchemy
 from flask_rest_jsonapi_next import JsonApiException, SqlalchemyDataLayer
 from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
 from flask_rest_jsonapi_next.exceptions import InvalidSort, RelationNotFound
+from tests.factories.models import Computer
 
 
 def test_sqlalchemy_data_layer_without_session(person_model, person_list):
@@ -171,6 +172,159 @@ def test_sqlalchemy_data_layer_sort_query_simple_relation_error(
         dl.sort_query(
             query, [dict(field="single_tag.non_existent_property", order="asc")]
         )
+
+
+# ---------------------------------------------------------------------------
+# Relationship operations: data-manipulation with integer PKs
+#
+# create_relationship and delete_relationship convert existing PKs to str()
+# before comparing against the JSON string ID from the request.  Without
+# that conversion, int(1) != str("1"), so:
+#   - create_relationship would always add duplicates
+#   - delete_relationship would never match and remove items
+# update_relationship compares model integers against model integers (both
+# sides come from loaded ORM objects), so no str() conversion is needed
+# there — but the set-equality semantics still need exercising.
+# ---------------------------------------------------------------------------
+
+
+def test_create_relationship_to_many_adds_related_object(
+    db, person_model, person, computer
+):
+    """A computer not yet linked to a person is added, and updated=True is returned."""
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.create_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is True
+    assert computer in person.computers
+
+
+def test_create_relationship_to_many_is_idempotent_with_integer_pk(
+    db, person_model, person, computer
+):
+    """POSTing a computer that is already linked must not create a duplicate.
+
+    The guard compares str(existing_pk) against the JSON string ID.  If the
+    str() conversion were missing, int(1) != str("1") and every POST would
+    append a duplicate regardless of whether the link already exists.
+    """
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.create_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is False
+    assert len(person.computers) == 1
+
+
+def test_delete_relationship_to_many_removes_related_object(
+    db, person_model, person, computer
+):
+    """A computer that is linked to a person is removed, and updated=True is returned."""
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.delete_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is True
+    assert computer not in person.computers
+
+
+def test_delete_relationship_to_many_skips_unlinked_object_with_integer_pk(
+    db, person_model, person, computer
+):
+    """DELETEing a computer that is NOT in the person's list must be a no-op.
+
+    The guard checks str(existing_pk) against the JSON string ID.  If the
+    str() conversion were missing, the in-set check would always be False
+    for integer PKs, silently swallowing removal requests that should work.
+    The inverse risk tested here: a non-member must not accidentally match.
+    """
+    # Create a second computer and link only that one to the person so the
+    # person's computer list is non-empty but does not contain `computer`.
+    other = Computer(serial="other")
+    db.session.add(other)
+    person.computers.append(other)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.delete_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is False
+    assert other in person.computers
+
+    # clean up the extra computer
+    db.session.delete(other)
+    db.session.commit()
+
+
+def test_update_relationship_to_many_replaces_set(db, person_model, person, computer):
+    """PATCH replaces the full relationship set; the new computer must appear."""
+    other = Computer(serial="replacement")
+    db.session.add(other)
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(other.id)}]}
+
+    obj, updated = dl.update_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is True
+    assert other in person.computers
+    assert computer not in person.computers
+
+    db.session.delete(other)
+    db.session.commit()
+
+
+def test_update_relationship_to_many_no_op_when_set_unchanged(
+    db, person_model, person, computer
+):
+    """PATCHing with the same set of IDs returns updated=False and changes nothing."""
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.update_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is False
+    assert person.computers == [computer]
 
 
 def test_base_data_layer():
