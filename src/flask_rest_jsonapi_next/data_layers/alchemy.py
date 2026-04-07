@@ -890,13 +890,13 @@ class SqlalchemyDataLayer(BaseDataLayer):
         pass
 
     def before_commit(self, obj):
+        if not callable(getattr(obj, "validate", None)):
+            return
+
         try:
             errors = obj.validate()
             if errors:
                 raise marshmallow.ValidationError(errors)
-
-        except AttributeError:
-            pass
 
         except Exception:
             self.session.rollback()
