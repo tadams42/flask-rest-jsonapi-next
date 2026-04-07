@@ -3,8 +3,8 @@ import sqlalchemy
 
 from flask_rest_jsonapi_next import JsonApiException, SqlalchemyDataLayer
 from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
-from flask_rest_jsonapi_next.exceptions import InvalidSort, RelationNotFound
-from tests.factories.models import Computer
+from flask_rest_jsonapi_next.exceptions import InvalidSort, RelatedObjectNotFound, RelationNotFound
+from tests.factories.models import Computer, Person
 
 
 def test_sqlalchemy_data_layer_without_session(person_model, person_list):
@@ -325,6 +325,210 @@ def test_update_relationship_to_many_no_op_when_set_unchanged(
     db.session.refresh(person)
     assert updated is False
     assert person.computers == [computer]
+
+
+# ---------------------------------------------------------------------------
+# #2 — to-one relationship null handling
+#
+# Both create_relationship and update_relationship use:
+#   obj_id = getattr(getattr(obj, field), id_field, None)
+# When the relationship is None, getattr(None, id_field, None) silently
+# returns None.  The four cases below pin each branch of the comparison.
+# ---------------------------------------------------------------------------
+
+
+def test_create_relationship_to_one_sets_when_previously_null(
+    db, computer, person
+):
+    """Setting an owner on a computer that has no owner: updated=True, owner is set."""
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    json_data = {"data": {"type": "person", "id": str(person.person_id)}}
+
+    obj, updated = dl.create_relationship(
+        json_data, "person", "person_id", {"id": computer.id}
+    )
+
+    db.session.refresh(computer)
+    assert updated is True
+    assert computer.person_id == person.person_id
+
+
+def test_create_relationship_to_one_no_op_when_both_null(db, computer):
+    """Setting null owner on an already owner-less computer: updated=False."""
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+
+    obj, updated = dl.create_relationship(
+        {"data": None}, "person", "person_id", {"id": computer.id}
+    )
+
+    assert updated is False
+    assert computer.person_id is None
+
+
+def test_update_relationship_to_one_clears_existing_owner(db, computer, person):
+    """Clearing the owner of a computer that has one: updated=True, owner is None."""
+    computer.person_id = person.person_id
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+
+    obj, updated = dl.update_relationship(
+        {"data": None}, "person", "person_id", {"id": computer.id}
+    )
+
+    db.session.refresh(computer)
+    assert updated is True
+    assert computer.person_id is None
+
+
+def test_update_relationship_to_one_no_op_when_same_owner(db, computer, person):
+    """PATCHing a to-one relationship with the same object: updated=False."""
+    computer.person_id = person.person_id
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    json_data = {"data": {"type": "person", "id": str(person.person_id)}}
+
+    obj, updated = dl.update_relationship(
+        json_data, "person", "person_id", {"id": computer.id}
+    )
+
+    assert updated is False
+    assert computer.person_id == person.person_id
+
+
+# ---------------------------------------------------------------------------
+# #5 — consistent exception wrapping across all relationship operations
+#
+# All three relationship mutation methods now wrap non-JsonApiExceptions in
+# JsonApiException so callers always receive a JSON:API-formatted error.
+# JsonApiException itself is re-raised as-is (not double-wrapped).
+# ---------------------------------------------------------------------------
+
+
+def test_create_relationship_commit_error_raises_json_api_exception(
+    db, computer, monkeypatch
+):
+    def fail():
+        raise RuntimeError("db exploded")
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException):
+        dl.create_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+
+
+def test_create_relationship_json_api_exception_is_not_double_wrapped(
+    db, computer, monkeypatch
+):
+    original = JsonApiException("original error")
+
+    def fail():
+        raise original
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException) as exc_info:
+        dl.create_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+    assert exc_info.value is original
+
+
+def test_update_relationship_commit_error_raises_json_api_exception(
+    db, computer, monkeypatch
+):
+    def fail():
+        raise RuntimeError("db exploded")
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException):
+        dl.update_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+
+
+def test_update_relationship_json_api_exception_is_not_double_wrapped(
+    db, computer, monkeypatch
+):
+    original = JsonApiException("original error")
+
+    def fail():
+        raise original
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException) as exc_info:
+        dl.update_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+    assert exc_info.value is original
+
+
+def test_delete_relationship_commit_error_raises_json_api_exception(
+    db, computer, monkeypatch
+):
+    def fail():
+        raise RuntimeError("db exploded")
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException):
+        dl.delete_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+
+
+# ---------------------------------------------------------------------------
+# #6 — create_object is all-or-nothing: invalid relationship leaves no partial state
+#
+# apply_relationships fetches all related objects before calling setattr on any
+# of them.  If a lookup raises RelatedObjectNotFound, no attribute has been set
+# on the new object and session.add / session.commit have never been called, so
+# the database is left completely unchanged.
+# ---------------------------------------------------------------------------
+
+
+def test_create_object_with_invalid_relationship_raises_related_object_not_found(
+    db, person_model, person_list
+):
+    dl = SqlalchemyDataLayer(
+        dict(session=db.session, model=person_model, resource=person_list)
+    )
+    with pytest.raises(RelatedObjectNotFound):
+        dl.create_object({"name": "ghost", "computers": [99999]}, {})
+
+
+def test_create_object_with_invalid_relationship_leaves_db_unchanged(
+    db, person_model, person_list
+):
+    """No Person row must be committed when the relationship lookup fails."""
+    before = db.session.scalar(
+        sqlalchemy.select(sqlalchemy.func.count()).select_from(Person)
+    )
+
+    try:
+        dl = SqlalchemyDataLayer(
+            dict(session=db.session, model=person_model, resource=person_list)
+        )
+        dl.create_object({"name": "ghost", "computers": [99999]}, {})
+    except RelatedObjectNotFound:
+        pass
+
+    after = db.session.scalar(
+        sqlalchemy.select(sqlalchemy.func.count()).select_from(Person)
+    )
+    assert after == before
 
 
 def test_base_data_layer():

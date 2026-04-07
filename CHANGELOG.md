@@ -2,8 +2,8 @@
 
 ## unreleased
 
-- fix: unsafe and undefined behavior in SQLAlchemy filtering
 - feat: `SQLAlchemyDataLayer` now works with `orm.Query` and `sa.Select` objects
+- fix: unsafe and undefined behavior in SQLAlchemy filtering
 
 ## 0.46.0
 

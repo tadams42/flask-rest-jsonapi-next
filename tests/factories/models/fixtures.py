@@ -12,8 +12,10 @@ def person(db):
     db.session.add(person_)
     db.session.commit()
     yield person_
-    db.session.delete(person_)
-    db.session.commit()
+    existing = db.session.get(Person, person_.person_id)
+    if existing is not None:
+        db.session.delete(existing)
+        db.session.commit()
 
 
 @pytest.fixture()
@@ -22,8 +24,10 @@ def person_2(db):
     db.session.add(person_)
     db.session.commit()
     yield person_
-    db.session.delete(person_)
-    db.session.commit()
+    existing = db.session.get(Person, person_.person_id)
+    if existing is not None:
+        db.session.delete(existing)
+        db.session.commit()
 
 
 @pytest.fixture()
@@ -37,8 +41,10 @@ def computer(db):
     db.session.add(computer_)
     db.session.commit()
     yield computer_
-    db.session.delete(computer_)
-    db.session.commit()
+    existing = db.session.get(Computer, computer_.id)
+    if existing is not None:
+        db.session.delete(existing)
+        db.session.commit()
 
 
 @pytest.fixture()

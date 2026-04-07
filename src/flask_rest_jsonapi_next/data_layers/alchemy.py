@@ -165,7 +165,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         query = self.paginate_query(query, qs.pagination)
 
-        collection = query if (as_query and not _is_select(query)) else self._exec_all(query)
+        collection = (
+            query if (as_query and not _is_select(query)) else self._exec_all(query)
+        )
 
         collection = self.after_get_collection(collection, qs, view_kwargs)
 
@@ -302,9 +304,12 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except:
+        except JsonApiException:
             self.session.rollback()
             raise
+        except Exception as e:
+            self.session.rollback()
+            raise JsonApiException("Create relationship error: " + str(e))
 
         self.after_create_relationship(
             obj, updated, json_data, relationship_field, related_id_field, view_kwargs
@@ -443,9 +448,12 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except Exception:
+        except JsonApiException:
             self.session.rollback()
             raise
+        except Exception as e:
+            self.session.rollback()
+            raise JsonApiException("Update relationship error: " + str(e))
 
         self.after_update_relationship(
             obj, updated, json_data, relationship_field, related_id_field, view_kwargs
@@ -634,9 +642,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
         """
         if _is_select(query):
             return self.session.scalar(
-                sqlalchemy.select(sqlalchemy.func.count()).select_from(
-                    query.subquery()
-                )
+                sqlalchemy.select(sqlalchemy.func.count()).select_from(query.subquery())
             )
         return query.count()
 
