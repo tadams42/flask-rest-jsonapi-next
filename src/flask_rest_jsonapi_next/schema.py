@@ -57,6 +57,13 @@ def compute_schema(schema_cls, default_kwargs, qs, include):
     if include:
         for include_path in include:
             field = include_path.split(".")[0]
+            # schema.declared_fields (no leading underscore) is an INSTANCE
+            # attribute: marshmallow deep-copies _declared_fields into it in
+            # Schema.__init__, so each schema instance owns its own field
+            # objects.  Mutating relation_field.__dict__ below is therefore
+            # per-request safe — it never touches the shared class-level
+            # Schema._declared_fields.  (get_related_schema reads
+            # schema._declared_fields, which is the untouched class attribute.)
             relation_field = schema.declared_fields[field]
             related_schema_cls = schema.declared_fields[field].__dict__[
                 "_Relationship__schema"

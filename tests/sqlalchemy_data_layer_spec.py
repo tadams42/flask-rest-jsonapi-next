@@ -3,7 +3,8 @@ import sqlalchemy
 
 from flask_rest_jsonapi_next import JsonApiException, SqlalchemyDataLayer
 from flask_rest_jsonapi_next.data_layers.base import BaseDataLayer
-from flask_rest_jsonapi_next.exceptions import InvalidSort, RelationNotFound
+from flask_rest_jsonapi_next.exceptions import InvalidSort, RelatedObjectNotFound, RelationNotFound
+from tests.factories.models import Computer, Person
 
 
 def test_sqlalchemy_data_layer_without_session(person_model, person_list):
@@ -171,6 +172,363 @@ def test_sqlalchemy_data_layer_sort_query_simple_relation_error(
         dl.sort_query(
             query, [dict(field="single_tag.non_existent_property", order="asc")]
         )
+
+
+# ---------------------------------------------------------------------------
+# Relationship operations: data-manipulation with integer PKs
+#
+# create_relationship and delete_relationship convert existing PKs to str()
+# before comparing against the JSON string ID from the request.  Without
+# that conversion, int(1) != str("1"), so:
+#   - create_relationship would always add duplicates
+#   - delete_relationship would never match and remove items
+# update_relationship compares model integers against model integers (both
+# sides come from loaded ORM objects), so no str() conversion is needed
+# there — but the set-equality semantics still need exercising.
+# ---------------------------------------------------------------------------
+
+
+def test_create_relationship_to_many_adds_related_object(
+    db, person_model, person, computer
+):
+    """A computer not yet linked to a person is added, and updated=True is returned."""
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.create_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is True
+    assert computer in person.computers
+
+
+def test_create_relationship_to_many_is_idempotent_with_integer_pk(
+    db, person_model, person, computer
+):
+    """POSTing a computer that is already linked must not create a duplicate.
+
+    The guard compares str(existing_pk) against the JSON string ID.  If the
+    str() conversion were missing, int(1) != str("1") and every POST would
+    append a duplicate regardless of whether the link already exists.
+    """
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.create_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is False
+    assert len(person.computers) == 1
+
+
+def test_delete_relationship_to_many_removes_related_object(
+    db, person_model, person, computer
+):
+    """A computer that is linked to a person is removed, and updated=True is returned."""
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.delete_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is True
+    assert computer not in person.computers
+
+
+def test_delete_relationship_to_many_skips_unlinked_object_with_integer_pk(
+    db, person_model, person, computer
+):
+    """DELETEing a computer that is NOT in the person's list must be a no-op.
+
+    The guard checks str(existing_pk) against the JSON string ID.  If the
+    str() conversion were missing, the in-set check would always be False
+    for integer PKs, silently swallowing removal requests that should work.
+    The inverse risk tested here: a non-member must not accidentally match.
+    """
+    # Create a second computer and link only that one to the person so the
+    # person's computer list is non-empty but does not contain `computer`.
+    other = Computer(serial="other")
+    db.session.add(other)
+    person.computers.append(other)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.delete_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is False
+    assert other in person.computers
+
+    # clean up the extra computer
+    db.session.delete(other)
+    db.session.commit()
+
+
+def test_update_relationship_to_many_replaces_set(db, person_model, person, computer):
+    """PATCH replaces the full relationship set; the new computer must appear."""
+    other = Computer(serial="replacement")
+    db.session.add(other)
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(other.id)}]}
+
+    obj, updated = dl.update_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is True
+    assert other in person.computers
+    assert computer not in person.computers
+
+    db.session.delete(other)
+    db.session.commit()
+
+
+def test_update_relationship_to_many_no_op_when_set_unchanged(
+    db, person_model, person, computer
+):
+    """PATCHing with the same set of IDs returns updated=False and changes nothing."""
+    person.computers.append(computer)
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=person_model))
+    json_data = {"data": [{"type": "computer", "id": str(computer.id)}]}
+
+    obj, updated = dl.update_relationship(
+        json_data, "computers", "id", {"id": person.person_id}
+    )
+
+    db.session.refresh(person)
+    assert updated is False
+    assert person.computers == [computer]
+
+
+# ---------------------------------------------------------------------------
+# #2 — to-one relationship null handling
+#
+# Both create_relationship and update_relationship use:
+#   obj_id = getattr(getattr(obj, field), id_field, None)
+# When the relationship is None, getattr(None, id_field, None) silently
+# returns None.  The four cases below pin each branch of the comparison.
+# ---------------------------------------------------------------------------
+
+
+def test_create_relationship_to_one_sets_when_previously_null(
+    db, computer, person
+):
+    """Setting an owner on a computer that has no owner: updated=True, owner is set."""
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    json_data = {"data": {"type": "person", "id": str(person.person_id)}}
+
+    obj, updated = dl.create_relationship(
+        json_data, "person", "person_id", {"id": computer.id}
+    )
+
+    db.session.refresh(computer)
+    assert updated is True
+    assert computer.person_id == person.person_id
+
+
+def test_create_relationship_to_one_no_op_when_both_null(db, computer):
+    """Setting null owner on an already owner-less computer: updated=False."""
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+
+    obj, updated = dl.create_relationship(
+        {"data": None}, "person", "person_id", {"id": computer.id}
+    )
+
+    assert updated is False
+    assert computer.person_id is None
+
+
+def test_update_relationship_to_one_clears_existing_owner(db, computer, person):
+    """Clearing the owner of a computer that has one: updated=True, owner is None."""
+    computer.person_id = person.person_id
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+
+    obj, updated = dl.update_relationship(
+        {"data": None}, "person", "person_id", {"id": computer.id}
+    )
+
+    db.session.refresh(computer)
+    assert updated is True
+    assert computer.person_id is None
+
+
+def test_update_relationship_to_one_no_op_when_same_owner(db, computer, person):
+    """PATCHing a to-one relationship with the same object: updated=False."""
+    computer.person_id = person.person_id
+    db.session.commit()
+    db.session.expire_all()
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    json_data = {"data": {"type": "person", "id": str(person.person_id)}}
+
+    obj, updated = dl.update_relationship(
+        json_data, "person", "person_id", {"id": computer.id}
+    )
+
+    assert updated is False
+    assert computer.person_id == person.person_id
+
+
+# ---------------------------------------------------------------------------
+# #5 — consistent exception wrapping across all relationship operations
+#
+# All three relationship mutation methods now wrap non-JsonApiExceptions in
+# JsonApiException so callers always receive a JSON:API-formatted error.
+# JsonApiException itself is re-raised as-is (not double-wrapped).
+# ---------------------------------------------------------------------------
+
+
+def test_create_relationship_commit_error_raises_json_api_exception(
+    db, computer, monkeypatch
+):
+    def fail():
+        raise RuntimeError("db exploded")
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException):
+        dl.create_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+
+
+def test_create_relationship_json_api_exception_is_not_double_wrapped(
+    db, computer, monkeypatch
+):
+    original = JsonApiException("original error")
+
+    def fail():
+        raise original
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException) as exc_info:
+        dl.create_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+    assert exc_info.value is original
+
+
+def test_update_relationship_commit_error_raises_json_api_exception(
+    db, computer, monkeypatch
+):
+    def fail():
+        raise RuntimeError("db exploded")
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException):
+        dl.update_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+
+
+def test_update_relationship_json_api_exception_is_not_double_wrapped(
+    db, computer, monkeypatch
+):
+    original = JsonApiException("original error")
+
+    def fail():
+        raise original
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException) as exc_info:
+        dl.update_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+    assert exc_info.value is original
+
+
+def test_delete_relationship_commit_error_raises_json_api_exception(
+    db, computer, monkeypatch
+):
+    def fail():
+        raise RuntimeError("db exploded")
+
+    dl = SqlalchemyDataLayer(dict(session=db.session, model=Computer))
+    monkeypatch.setattr(dl.session, "commit", fail)
+
+    with pytest.raises(JsonApiException):
+        dl.delete_relationship(
+            {"data": None}, "person", "person_id", {"id": computer.id}
+        )
+
+
+# ---------------------------------------------------------------------------
+# #6 — create_object is all-or-nothing: invalid relationship leaves no partial state
+#
+# apply_relationships fetches all related objects before calling setattr on any
+# of them.  If a lookup raises RelatedObjectNotFound, no attribute has been set
+# on the new object and session.add / session.commit have never been called, so
+# the database is left completely unchanged.
+# ---------------------------------------------------------------------------
+
+
+def test_create_object_with_invalid_relationship_raises_related_object_not_found(
+    db, person_model, person_list
+):
+    dl = SqlalchemyDataLayer(
+        dict(session=db.session, model=person_model, resource=person_list)
+    )
+    with pytest.raises(RelatedObjectNotFound):
+        dl.create_object({"name": "ghost", "computers": [99999]}, {})
+
+
+def test_create_object_with_invalid_relationship_leaves_db_unchanged(
+    db, person_model, person_list
+):
+    """No Person row must be committed when the relationship lookup fails."""
+    before = db.session.scalar(
+        sqlalchemy.select(sqlalchemy.func.count()).select_from(Person)
+    )
+
+    try:
+        dl = SqlalchemyDataLayer(
+            dict(session=db.session, model=person_model, resource=person_list)
+        )
+        dl.create_object({"name": "ghost", "computers": [99999]}, {})
+    except RelatedObjectNotFound:
+        pass
+
+    after = db.session.scalar(
+        sqlalchemy.select(sqlalchemy.func.count()).select_from(Person)
+    )
+    assert after == before
 
 
 def test_base_data_layer():
