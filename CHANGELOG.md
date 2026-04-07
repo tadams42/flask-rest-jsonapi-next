@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## unreleased
+
+- fix: unsafe and undefined behavior in SQLAlchemy filtering
+- feat: `SQLAlchemyDataLayer` now works with `orm.Query` and `sa.Select` objects
+
 ## 0.46.0
 
 - fix: using string filters on enum fields didn't work with SQLAlchemy

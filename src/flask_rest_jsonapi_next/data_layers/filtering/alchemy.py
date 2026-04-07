@@ -81,21 +81,24 @@ class Node(object):
                 return getattr(column, self.operator)(value)
 
         if "or" in self.filter_ and self.filter_["or"]:
-            return or_(
+            clauses = [
                 Node(self.model, filt, self.resource, self.schema).resolve()
                 for filt in self.filter_["or"]
-            )
+            ]
+            clauses = [c for c in clauses if c is not None]
+            return or_(*clauses) if clauses else None
         if "and" in self.filter_ and self.filter_["and"]:
-            return and_(
+            clauses = [
                 Node(self.model, filt, self.resource, self.schema).resolve()
                 for filt in self.filter_["and"]
-            )
+            ]
+            clauses = [c for c in clauses if c is not None]
+            return and_(*clauses) if clauses else None
         if "not" in self.filter_ and self.filter_["not"]:
-            return not_(
-                Node(
-                    self.model, self.filter_["not"], self.resource, self.schema
-                ).resolve()
-            )
+            inner = Node(
+                self.model, self.filter_["not"], self.resource, self.schema
+            ).resolve()
+            return not_(inner) if inner is not None else None
 
     @property
     def name(self):
