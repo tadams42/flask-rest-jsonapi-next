@@ -96,7 +96,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
         self.session.add(obj)
         try:
             self.session.commit()
-        except:
+        except Exception:
             self.session.rollback()
             raise
 
@@ -207,7 +207,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         try:
             self.session.commit()
-        except:
+        except Exception:
             self.session.rollback()
             raise
 
@@ -232,7 +232,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
         self.session.delete(obj)
         try:
             self.session.commit()
-        except:
+        except Exception:
             self.session.rollback()
             raise
 

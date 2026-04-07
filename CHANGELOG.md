@@ -2,8 +2,10 @@
 
 ## unreleased
 
-- feat: `SQLAlchemyDataLayer` now works with `orm.Query` and `sa.Select` objects
+- `SQLAlchemyDataLayer` now works with both, legacy `orm.Query` and new `sa.Select`
+  objects transparently
 - fix: unsafe and undefined behavior in SQLAlchemy filtering
+- small fixes in `SQLAlchemyDataLayer` handling of relationships
 
 ## 0.46.0
 
