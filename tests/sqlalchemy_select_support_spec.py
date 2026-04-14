@@ -253,3 +253,51 @@ def test_sort_query_with_sa_select_orders_results(
     results = list(db.session.scalars(sorted_q))
     names = [p.name for p in results]
     assert names == sorted(names)
+
+
+# ---------------------------------------------------------------------------
+# eagerload_includes: collection vs scalar loader strategy
+# ---------------------------------------------------------------------------
+
+
+def test_get_collection_with_include_collection_no_duplicates(
+    db, person_model, person_list, person_schema, app
+):
+    """get_collection with include=<collection> must return one object per parent,
+    not one per child row. This was broken when joinedload was used unconditionally
+    because the resulting SQL JOIN produced N duplicate parent rows for N children,
+    and SQLAlchemy 2.x raised InvalidRequestError without an explicit .unique() call."""
+    from .factories.models.computer import Computer
+
+    app.config["PAGE_SIZE"] = 20
+    with app.app_context():
+        # Create one person with two computers.
+        p = person_model(name="multi-computer")
+        db.session.add(p)
+        db.session.flush()
+        db.session.add(Computer(serial="A", person_id=p.person_id))
+        db.session.add(Computer(serial="B", person_id=p.person_id))
+        db.session.commit()
+
+        try:
+            dl = SelectQueryDataLayer(
+                dict(session=db.session, model=person_model, resource=person_list)
+            )
+            qs = QueryStringManager(
+                {"include": "computers"},
+                person_schema,
+                allow_disable_pagination=True,
+                max_page_size=100,
+            )
+            count, collection = dl.get_collection(qs, {})
+        finally:
+            db.session.query(Computer).filter(
+                Computer.person_id == p.person_id
+            ).delete()
+            db.session.delete(p)
+            db.session.commit()
+
+    # There is one person — the collection must not be duplicated.
+    matching = [obj for obj in collection if obj.person_id == p.person_id]
+    assert len(matching) == 1
+    assert len(matching[0].computers) == 2
