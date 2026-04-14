@@ -652,7 +652,10 @@ class SqlalchemyDataLayer(BaseDataLayer):
         Supports both legacy orm.Query and sa.Select objects.
         """
         if _is_select(query):
-            return list(self.session.scalars(query))
+            # .unique() deduplicates parent objects when a joinedload against a
+            # collection (one-to-many) is present, which SQLAlchemy 2.x requires
+            # explicitly. It is a no-op when selectinload is used instead.
+            return list(self.session.scalars(query).unique())
         return query.all()
 
     def _exec_one(self, query):
@@ -661,7 +664,7 @@ class SqlalchemyDataLayer(BaseDataLayer):
         Supports both legacy orm.Query and sa.Select objects.
         """
         if _is_select(query):
-            return self.session.scalars(query).one()
+            return self.session.scalars(query).unique().one()
         return query.one()
 
     def filter_query(self, query, filter_info, model):
@@ -806,10 +809,26 @@ class SqlalchemyDataLayer(BaseDataLayer):
         # elif model_attribute:
 
         if model_attribute:
-            if previous_loader is None:
-                loader = orm.joinedload(model_attribute)
+            prop = getattr(model_attribute, "property", None)
+            # Collection relationships (one-to-many, many-to-many) use selectinload
+            # to avoid the duplicate-parent-row problem that joinedload causes when
+            # the base query is a sa.Select (SQLAlchemy 2.x). joinedload adds a SQL
+            # LEFT OUTER JOIN that produces N duplicate parent rows for N children;
+            # SQLAlchemy 2.x then requires an explicit .unique() call which was
+            # missing and caused an InvalidRequestError. selectinload avoids this
+            # entirely by firing a separate SELECT ... WHERE id IN (...) query.
+            # Scalar relationships (many-to-one, one-to-one) keep joinedload.
+            is_collection = isinstance(prop, RelationshipProperty) and prop.uselist
+            if is_collection:
+                if previous_loader is None:
+                    loader = orm.selectinload(model_attribute)
+                else:
+                    loader = previous_loader.selectinload(model_attribute)
             else:
-                loader = previous_loader.joinedload(model_attribute)
+                if previous_loader is None:
+                    loader = orm.joinedload(model_attribute)
+                else:
+                    loader = previous_loader.joinedload(model_attribute)
 
         return loader
 

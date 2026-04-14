@@ -96,3 +96,5 @@ ENV/
 
 uv.lock
 .httpyac/
+
+/.claude/
