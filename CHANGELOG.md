@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.47.2
+
+- fix: always try coercing URL `id` into `int`
+- fix: when coercing `?filter` value, ask model for destination's value type
+
 ## 0.47.0
 
 - `SQLAlchemyDataLayer` now works with both, legacy `orm.Query` and new `sa.Select`
