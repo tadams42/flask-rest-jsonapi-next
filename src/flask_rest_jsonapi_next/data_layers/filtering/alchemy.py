@@ -1,4 +1,5 @@
 """Helper to create sqlalchemy filters according to filter querystring parameter"""
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -6,17 +7,26 @@ from decimal import Decimal
 from typing import Iterable, Mapping, Union
 
 from dateutil import parser
-from sqlalchemy import and_, cast, not_, or_, String
+from sqlalchemy import String, and_, cast, not_, or_
 from sqlalchemy.sql.sqltypes import Enum as SAEnum
 
 from ...exceptions import InvalidFilters
 from ...schema import get_model_field, get_nested_fields, get_relationships
 
-STRING_PATTERN_OPERATORS = frozenset({
-    "like", "ilike", "notlike", "notilike",
-    "contains", "startswith", "endswith",
-    "icontains", "istartswith", "iendswith",
-})
+STRING_PATTERN_OPERATORS = frozenset(
+    {
+        "like",
+        "ilike",
+        "notlike",
+        "notilike",
+        "contains",
+        "startswith",
+        "endswith",
+        "icontains",
+        "istartswith",
+        "iendswith",
+    }
+)
 
 
 def create_filters(model, filter_info, resource):
@@ -194,7 +204,66 @@ class Node(object):
             if "val" not in self.filter_:
                 raise InvalidFilters("Can't find value or field in a filter")
 
-            return self._coerce(self.filter_["val"])
+            val = self.filter_["val"]
+            if isinstance(val, Mapping) or (
+                isinstance(val, Iterable) and not isinstance(val, str)
+            ):
+                return self._coerce(val)
+            elif isinstance(val, str):
+                return self._coerce_by_column_type(val)
+            else:
+                return val
+
+    def _coerce_by_column_type(
+        self, value: str
+    ) -> Union[str, int, date, datetime, Decimal]:
+        """Convert a string filter value to the Python type declared on the model column.
+
+        Only converts for date, datetime, int, and Decimal column types. Returns
+        the raw string for all other column types. Raises InvalidFilters if the
+        conversion fails.
+        """
+        try:
+            python_type = self.column.type.python_type
+        except (NotImplementedError, AttributeError):
+            return value
+
+        # Check datetime before date — datetime is a subclass of date.
+        if python_type is datetime:
+            try:
+                return datetime.fromisoformat(value)
+            except ValueError:
+                raise InvalidFilters(
+                    f"Cannot convert filter value {value!r} to datetime"
+                )
+
+        elif python_type is date:
+            try:
+                return date.fromisoformat(value)
+            except ValueError:
+                raise InvalidFilters(f"Cannot convert filter value {value!r} to date")
+
+        elif python_type is int:
+            try:
+                return int(value)
+            except ValueError:
+                raise InvalidFilters(f"Cannot convert filter value {value!r} to int")
+
+        elif python_type is Decimal:
+            try:
+                return Decimal(value)
+            except Exception:
+                raise InvalidFilters(
+                    f"Cannot convert filter value {value!r} to Decimal"
+                )
+
+        elif python_type is float:
+            try:
+                return Decimal(value)
+            except Exception:
+                raise InvalidFilters(f"Cannot convert filter value {value!r} to float")
+        else:
+            return value
 
     @classmethod
     def _coerce(

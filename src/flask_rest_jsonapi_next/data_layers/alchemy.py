@@ -121,7 +121,15 @@ class SqlalchemyDataLayer(BaseDataLayer):
             )
 
         url_field = getattr(self, "url_field", "id")
-        filter_value = view_kwargs[url_field]
+        url_field_val = view_kwargs[url_field]
+        filter_value = None
+        if url_field_val is not None:
+            # psycopg version 3 is a lot stricter with types: let's make sure we convert
+            # ID into integer if possible
+            try:
+                filter_value = int(view_kwargs[url_field])
+            except ValueError:
+                filter_value = url_field_val
 
         query = self.retrieve_object_query(view_kwargs, filter_field, filter_value)
 
