@@ -5,7 +5,7 @@ requires = ["setuptools>=64", "wheel"]
 
 [project]
 name = "flask-rest-jsonapi-next"
-version = "0.47.2"
+version = "0.47.3"
 description = "Flask extension to create REST web api according to JSONAPI 1.0 specification with Flask, Marshmallow and data provider of your choice (SQLAlchemy, MongoDB, ...)"
 readme = "README.md"
 authors = [{ name = "original miLibris/flask-rest-jsonapi contributors" }]
@@ -53,6 +53,7 @@ dev = [
     "rich",
     "pre-commit",
     "pytest",
+    "psycopg[binary]",
 ]
 
 
@@ -112,7 +113,7 @@ delay = 0.5
 
 
 [tool.bumpversion]
-current_version = "0.47.2"
+current_version = "0.47.3"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\.dev(?P<build>\\d+))?"
 serialize = ["{major}.{minor}.{patch}.dev{build}", "{major}.{minor}.{patch}"]
 search = "{current_version}"
