@@ -303,6 +303,33 @@ class _SQLProgrammingErrorConverter(ExceptionConverter):
         )
 
 
+class _OperationalErrorConverter(ExceptionConverter):
+    @classmethod
+    def convert(cls, exc):
+        if not isinstance(exc, sqlalchemy.exc.OperationalError):
+            raise ValueError()
+
+        if not _PSYCOPG:
+            raise ValueError()
+
+        orig = getattr(exc, "orig", None)
+        if not isinstance(
+            orig,
+            (
+                _PSYCOPG.errors.AdminShutdown,
+                _PSYCOPG.errors.CrashShutdown,
+                _PSYCOPG.errors.CannotConnectNow,
+            ),
+        ):
+            raise ValueError()
+
+        return dict(
+            title="DatabaseTemporarilyUnavailable",
+            detail="Database connection was interrupted due to server maintenance. Please retry.",
+            http_status=requests.codes["service_unavailable"],
+        )
+
+
 class _SQLStatementErrorConverter(ExceptionConverter):
     @classmethod
     def convert(cls, exc):

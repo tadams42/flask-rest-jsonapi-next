@@ -15,6 +15,7 @@ _REGISTRY_INTERNALS_ORDER = [
     "_MultipleResultsFoundConverter",
     "_NoResultFoundConverter",
     "_SQLProgrammingErrorConverter",
+    "_OperationalErrorConverter",
     "_SQLStatementErrorConverter",
     "_WerkzeugHttpErrorConverter",
 ]
