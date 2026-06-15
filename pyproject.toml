@@ -48,10 +48,8 @@ Documentation = "https://flask-rest-jsonapi-next.readthedocs.io/en/latest/"
 # Private, local dependencies
 [dependency-groups]
 dev = [
-    "ruff",
     "ipython",
     "rich",
-    "pre-commit",
     "pytest",
     "psycopg[binary]",
 ]
