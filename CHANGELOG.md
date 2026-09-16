@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 0.48.0
+
+- feat: `?filter` can traverse relationships with dot notation, the same syntax `?sort`
+  and `?include` already use:
+
+  `?filter=[{"name":"computers.serial","op":"ilike","val":"%Amstrad%"}]`
+
+  It is a shortcut for the explicit nested form and resolves identically: `any` for to
+  many and `has` for to one relationships. Deeper paths (`a.b.c`) work too.
+
+- fix: the documented `computers__serial` shortcut raised `TypeError` (HTTP 500) when
+  combined with a leaf operator like `ilike`. It now behaves like dot notation. Combined
+  with `has`/`any` it still means "call the operator with this keyword argument".
+
+- fix: filtering through a relationship declared without a schema raised `ValueError`
+  (HTTP 500) instead of HTTP 400.
+
+## 0.47.3
+
+- fix: returns HTTP 503 instead of 422 for some of database errors
+
 ## 0.47.2
 
 - fix: always try coercing URL `id` into `int`

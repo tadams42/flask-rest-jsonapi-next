@@ -69,6 +69,10 @@ class Node(object):
             and "and" not in self.filter_
             and "not" not in self.filter_
         ):
+            related_path = self._related_path
+            if related_path is not None:
+                return self._resolve_related_path(*related_path)
+
             value = self.value
 
             if self.operator == "between":
@@ -111,6 +115,79 @@ class Node(object):
             return not_(inner) if inner is not None else None
 
     @property
+    def _related_path(self):
+        """Split a relationship traversing filter name into (head, tail).
+
+        Names can traverse relationships either with a dot (``computers.serial``, the
+        same syntax ``sort`` and ``include`` use) or with the legacy double underscore
+        (``computers__serial``). The double underscore is ambiguous: combined with the
+        ``has``/``any`` operators it means "call the operator with this keyword
+        argument" (``Person.computers.any(serial="x")``), which is handled further down
+        in ``resolve``. Only the remaining case - a leaf operator such as ``ilike`` -
+        is a relationship traversal.
+
+        :return tuple: (relationship field name, rest of the path) or None when the
+            filter doesn't traverse a relationship.
+        """
+        name = self.filter_.get("name")
+
+        if not name:
+            return None
+
+        if "." in name:
+            head, _, tail = name.partition(".")
+            return head, tail
+
+        if "__" in name and self.op not in ("has", "any"):
+            head, _, tail = name.partition("__")
+            return head, tail
+
+        return None
+
+    def _resolve_related_path(self, head, tail):
+        """Resolve a relationship traversing filter into an EXISTS subquery.
+
+        ``{"name": "computers.serial", "op": "ilike", "val": "%x%"}`` resolves exactly
+        like the explicit nested form
+        ``{"name": "computers", "op": "any", "val": {"name": "serial", ...}}``: ``any``
+        for to many and ``has`` for to one relationships. Deeper paths recurse, since
+        the filter handed to the related node keeps whatever is left of the path.
+        """
+        if not tail:
+            raise InvalidFilters("Can't find name of a filter")
+
+        relationship = self._related_attribute
+        related_node = Node(
+            self.related_model,
+            dict(self.filter_, name=tail),
+            self.resource,
+            self.related_schema,
+        )
+
+        if relationship.property.uselist:
+            return relationship.any(related_node.resolve())
+
+        return relationship.has(related_node.resolve())
+
+    @property
+    def _related_attribute(self):
+        """Get the model attribute of a related (relationship or nested) field
+
+        :return InstrumentedAttribute: the relationship to traverse
+        """
+        related_field_name = self.name
+
+        related_fields = get_relationships(self.schema) + get_nested_fields(self.schema)
+        if related_field_name not in related_fields:
+            raise InvalidFilters(
+                "{} has no relationship or nested attribute {}".format(
+                    self.schema.__name__, related_field_name
+                )
+            )
+
+        return getattr(self.model, get_model_field(self.schema, related_field_name))
+
+    @property
     def name(self):
         """Return the name of the node or raise a BadRequest exception
 
@@ -121,7 +198,9 @@ class Node(object):
         if name is None:
             raise InvalidFilters("Can't find name of a filter")
 
-        if "__" in name:
+        if "." in name:
+            name = name.split(".")[0]
+        elif "__" in name:
             name = name.split("__")[0]
 
         if name not in self.schema._declared_fields:
@@ -302,19 +381,18 @@ class Node(object):
 
         :return DeclarativeMeta: the related model
         """
-        related_field_name = self.name
+        related_attribute = self._related_attribute
 
-        related_fields = get_relationships(self.schema) + get_nested_fields(self.schema)
-        if related_field_name not in related_fields:
+        try:
+            return related_attribute.property.mapper.class_
+        except AttributeError:
+            # ie. a Nested field mapped onto a JSON column: it is a nested field, but
+            # there is nothing to traverse into.
             raise InvalidFilters(
                 "{} has no relationship or nested attribute {}".format(
-                    self.schema.__name__, related_field_name
+                    self.schema.__name__, self.name
                 )
             )
-
-        return getattr(
-            self.model, get_model_field(self.schema, related_field_name)
-        ).property.mapper.class_
 
     @property
     def related_schema(self):
@@ -331,4 +409,13 @@ class Node(object):
                 )
             )
 
-        return self.schema._declared_fields[related_field_name].schema.__class__
+        try:
+            return self.schema._declared_fields[related_field_name].schema.__class__
+        except ValueError:
+            # marshmallow_jsonapi.fields.Relationship raises when it was declared
+            # without a schema - such a relationship can't be filtered through.
+            raise InvalidFilters(
+                "{} has no schema for relationship {}".format(
+                    self.schema.__name__, related_field_name
+                )
+            )

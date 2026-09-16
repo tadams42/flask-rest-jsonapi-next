@@ -58,12 +58,22 @@ If you want to filter through relationships you can do that:
 
     When you filter on relationships use "any" operator for "to many" relationships and "has" operator for "to one" relationships.
 
-There is a shortcut to achieve the same filter:
+There is a shortcut to achieve the same filter - dot notation, the same syntax used by
+``sort`` and ``include``:
 
 .. sourcecode:: http
 
-    GET /persons?filter=[{"name":"computers__serial","op":"ilike","val":"%Amstrad%"}] HTTP/1.1
+    GET /persons?filter=[{"name":"computers.serial","op":"ilike","val":"%Amstrad%"}] HTTP/1.1
     Accept: application/vnd.api+json
+
+The right operator ("any" or "has") is picked from the relationship itself, and paths
+may traverse more than one relationship (``"computers.owner.name"``).
+
+Double underscore works as a separator too (``"computers__serial"``), except when it is
+combined with the "any" or "has" operators. There, it keeps its older meaning: the part
+after the underscores is passed to the operator as a keyword argument, ie.
+``{"name":"owner__name","op":"has","val":"John"}`` resolves to
+``Computer.person.has(name="John")``.
 
 You can also use boolean combination of operations:
 
