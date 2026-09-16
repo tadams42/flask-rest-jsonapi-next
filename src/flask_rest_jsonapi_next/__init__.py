@@ -1,4 +1,4 @@
-__version__ = "0.47.3"
+__version__ = "0.48.0"
 
 from .api import Api
 from .data_layers.alchemy import SqlalchemyDataLayer
